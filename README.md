@@ -6,54 +6,57 @@ The "Design" folder in the repo contains the database diagram and wireframe desi
 ## Technologies and Frameworks
 
 App consists of 3 parts;
-- Backend API
--- MySql
--- Node.js
+- Backend
+  - MySql
+  - Node.js
 
 - Website
--- NextJs (React)
+  - NextJs (React)
 
 - Mobile (Flutter)
 
 ## Setting Up The Project
 
-- npm install in both frontend/ and backend/
+- `npm install` in both `site/` and `backend/`
 
-- Database
--- Run "database_init.sql" file in your database.
+- Run "database_init.sql" file in your database.
 
 - Setup enviorement variables;
+  - `.env.development` file with such variables must be created in `backend/`;
+  <br></br>
+  ```
+  PORT=<PORT NUMBER>
+  ```
+  - `.env.production` file with such variables must be created in `backend/`;
+  <br></br>
+  ```
+  PORT=<PORT NUMBER>
+  ```
 
--- Backend
---- .env.development file with such variables must be created in backend/;
-PORT=<PORT NUMBER>
-
---- .env.production file with such variables must be created in backend/;
-PORT=<PORT NUMBER>
-
--- Frontend
---- In the frontend/package.json file's scripts setting, the ports must be changed to your liking;
+- In the `site/package.json` file's `scripts` setting, the ports must be changed to your liking;
+```
   "scripts": {
     "dev": "next dev --port 3000",  --- Development Port
     "build": "next build",
     "start": "next start --port 2000", --- Production Port
     "lint": "next lint"
   }
+```
 
 ## Development
 
 To run the project;
 
-- npm run dev in 'backend/'
-- npm run start in 'backend/'
+- `npm run dev` in `backend/`
+- `npm run start` in `backend/`
 
 ## Deployment
 
 To build the project;
 
-- npm run build in site/
+- `npm run build` in `site/`
 
 To run the project;
 
-- npm run start in site/
-- npm run start in backend/
+- `npm run start` in `site/`
+- `npm run start` in `backend/`
