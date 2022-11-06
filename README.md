@@ -21,7 +21,7 @@ App consists of 3 parts;
 
 - Run "database_init.sql" file in your database.
 
-- Setup enviorement variables;
+- Create enviorement variable files;
   - `.env.development` file with such variables must be created in `backend/`;
   <br></br>
   ```
@@ -31,6 +31,16 @@ App consists of 3 parts;
   <br></br>
   ```
   PORT=<PORT NUMBER>
+  ```
+  - `.env.development` file with such variables must be created in `site/`;
+  <br></br>
+  ```
+  NEXT_PUBLIC_BACKEND_ADDRESS="<BACKEND_ADRESS>" --- example "http://localhost:3001"
+  ```
+  - `.env.production` file with such variables must be created in `site/`;
+  <br></br>
+  ```
+  NEXT_PUBLIC_BACKEND_ADDRESS="<BACKEND_ADRESS>" --- example "http://localhost:2001"
   ```
 
 - In the `site/package.json` file's `scripts` setting, the ports must be changed to your liking;
