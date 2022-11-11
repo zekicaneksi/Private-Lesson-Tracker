@@ -19,7 +19,7 @@ export default function Signin() {
         </div>
 
         <button className={styles.fill}>Giriş Yap</button>
-        <a href="/register"><button className={styles.fill}>Kayıt Ol</button></a>
+        <a href="/signup"><button className={styles.fill}>Kayıt Ol</button></a>
 
       </div>
     )

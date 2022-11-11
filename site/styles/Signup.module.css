@@ -1,0 +1,32 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: grey;
+    position: absolute;
+    padding: 2%;
+}
+
+.flexRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1em;
+}
+
+.zeroMargin{
+    padding: 0;
+    margin: 0;
+}
+
+.fill{
+    width: 100%;
+    height: 100%;
+}
+
+.halfTransparent{
+    opacity: 50%;
+}
