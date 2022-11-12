@@ -13,7 +13,7 @@ CREATE TABLE User (
     user_type_id INT NOT NULL,
     name VARCHAR(40) NOT NULL,
     surname VARCHAR(40) NOT NULL,
-    email VARCHAR(70) NOT NULL,
+    email VARCHAR(70) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
     birth_date DATE,
     school VARCHAR(50),

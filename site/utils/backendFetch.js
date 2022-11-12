@@ -1,7 +1,7 @@
 export function backendFetchGET(path, callback) {
     fetch(process.env.NEXT_PUBLIC_BACKEND_ADDRESS + path)
-        .then((response) => response.json())
-        .then((data) => callback(data));
+        .then((response) => callback(response))
+        .catch((error) => callback(error))
 }
 
 export function backendFetchPOST(path, data, callback) {
@@ -12,11 +12,8 @@ export function backendFetchPOST(path, data, callback) {
         },
         body: JSON.stringify(data),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          callback(data);
-        })
+        .then((response) => callback(response))
         .catch((error) => {
-          callback(data);
+          callback(error);
         });
 }
