@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import styles from '../styles/Signup.module.css'
 import { useEffect, useState } from 'react';
+import {backendFetchPOST} from '../utils/backendFetch.js';
 
 function FormInputComponent(props) {
 
@@ -17,6 +18,7 @@ function FormInputComponent(props) {
 
 export default function Signin() {
 
+    const [disableForm, setDisableForm] = useState(false);
     const [type, setType] = useState("teacher");
     const [formValues, setFormValues] = useState({
         name: "",
@@ -38,9 +40,17 @@ export default function Signin() {
         setFormValues(holdFormValues);
     }, [type])
 
+    function signupBtnHandle() {
+        let toSend = {...formValues, type: type};
+        setDisableForm(true);
+        backendFetchPOST('/signup', toSend, (response) => {
+            console.log(response);
+            setDisableForm(false);
+        })
+    }
 
     return (
-        <div className={styles.container}>
+        <div className={`${styles.container} ${disableForm ? styles.test : ''}`}>
             <Head>
                 <title>Kayıt</title>
             </Head>
@@ -107,7 +117,7 @@ export default function Signin() {
 
             )}
 
-            <button className={styles.fill} onClick={() => { console.log(type,formValues) }}>Kayıt Ol</button>
+            <button className={styles.fill} onClick={signupBtnHandle}>Kayıt Ol</button>
             <a href="/signin"><button className={styles.fill}>Geri</button></a>
 
         </div>

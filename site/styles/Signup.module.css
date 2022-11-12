@@ -30,3 +30,8 @@
 .halfTransparent{
     opacity: 50%;
 }
+
+.test{
+    pointer-events: none;
+    opacity: 0.4;
+}
