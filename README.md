@@ -26,11 +26,21 @@ App consists of 3 parts;
   <br></br>
   ```
   PORT=<PORT NUMBER>
+  MYSQL_HOSTNAME="<HOSTNAME>" --- example "localhost"
+  MYSQL_PORT=<PORT NUMBER> --- example 3306
+  MYSQL_USER="<USERNAME>" --- example "root"
+  MYSQL_PASSWORD="<PASSWORD>"
+  MYSQL_DATABASE="private_lesson_tracker"
   ```
   - `.env.production` file with such variables must be created in `backend/`;
   <br></br>
   ```
   PORT=<PORT NUMBER>
+  MYSQL_HOSTNAME="<HOSTNAME>" --- example "localhost"
+  MYSQL_PORT=<PORT NUMBER> --- example 3306
+  MYSQL_USER="<USERNAME>" --- example "root"
+  MYSQL_PASSWORD="<PASSWORD>"
+  MYSQL_DATABASE="private_lesson_tracker"
   ```
   - `.env.development` file with such variables must be created in `site/`;
   <br></br>
