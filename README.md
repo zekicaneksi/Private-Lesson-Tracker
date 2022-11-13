@@ -68,7 +68,7 @@ App consists of 3 parts;
 To run the project;
 
 - `npm run dev` in `backend/`
-- `npm run start` in `backend/`
+- `npm run dev` in `site/`
 
 ## Deployment
 
