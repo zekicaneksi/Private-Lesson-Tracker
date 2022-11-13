@@ -47,6 +47,12 @@ export default function Signin() {
     }
 
     function signupBtnHandle() {
+
+        if(formValues.password != formValues.passwordAgain){
+            showPopup("Şifre eşleşmiyor");
+            return;
+        }
+
         let toSend = { ...formValues, type: type };
         setDisableForm(true);
         backendFetchPOST('/signup', toSend, async (response) => {
@@ -62,7 +68,7 @@ export default function Signin() {
                         showPopup("Çok uzun bir şifre girdiniz");
                         break;
                     default:
-                        showPopup("Bilinmeyen hata");
+                        showPopup("Lütfen alanları eksiksiz ve doğru bir biçimde doldurunuz");
                         break;
                 }
             }
