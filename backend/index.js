@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import mysql from 'mysql2/promise'
+import bcrypt from 'bcrypt';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
 
@@ -41,6 +42,10 @@ app.post('/signup', async (req, res) => {
         if(userInfo[key].length==0) userInfo[key] = null;
     });
 
+    if((Buffer.byteLength(userInfo.password, 'utf16')) > 72){
+        return res.status(400).json({msg: "Password Too Long"});
+    }
+
     switch(userInfo.type){
         case "teacher":
             userInfo.type = 1;
@@ -54,6 +59,12 @@ app.post('/signup', async (req, res) => {
         default:
             return res.status(400).json({msg: "wrong user type"});
     }
+
+    await bcrypt.hash(userInfo.password, 10).then(function(hash) {
+        userInfo.password = hash;
+    }).catch(function(err) {
+      return res.status(400).json({msg:"hashing error"});  
+    });
 
     try {
         const [row, fields] = await connection.execute(

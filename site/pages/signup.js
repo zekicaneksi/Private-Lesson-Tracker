@@ -58,6 +58,9 @@ export default function Signin() {
                     case "ER_DUP_ENTRY":
                         showPopup("Lütfen kullanılmayan bir mail adresi giriniz");
                         break;
+                    case "Password Too Long":
+                        showPopup("Çok uzun bir şifre girdiniz");
+                        break;
                     default:
                         showPopup("Bilinmeyen hata");
                         break;
