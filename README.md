@@ -31,6 +31,8 @@ App consists of 3 parts;
   MYSQL_USER="<USERNAME>" --- example "root"
   MYSQL_PASSWORD="<PASSWORD>"
   MYSQL_DATABASE="private_lesson_tracker"
+  SESSION_SECRET="<SECRET_FOR_SESSION>"
+  FRONTEND_ADDRESS="<FRONTEND_ADDRESS>" --- example "http://localhost:3000"
   ```
   - `.env.production` file with such variables must be created in `backend/`;
   <br></br>
@@ -41,6 +43,8 @@ App consists of 3 parts;
   MYSQL_USER="<USERNAME>" --- example "root"
   MYSQL_PASSWORD="<PASSWORD>"
   MYSQL_DATABASE="private_lesson_tracker"
+  SESSION_SECRET="<SECRET_FOR_SESSION>"
+  FRONTEND_ADDRESS="<FRONTEND_ADDRESS>" --- example "http://localhost:2000"
   ```
   - `.env.development` file with such variables must be created in `site/`;
   <br></br>
