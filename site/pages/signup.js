@@ -59,8 +59,11 @@ export default function Signup() {
                         showPopup("Lütfen alanları eksiksiz ve doğru bir biçimde doldurunuz");
                         break;
                 }
+                setDisableForm(false);
+            } else {
+                let route = await response.json();
+                window.location.href = "/" + route.msg;
             }
-            setDisableForm(false);
         })
     }
 

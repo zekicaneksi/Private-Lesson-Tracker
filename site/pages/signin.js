@@ -21,7 +21,7 @@ export default function Signin() {
   function signinBtnHandle() {
     let toSend = { ...formValues };
     setDisableForm(true);
-    
+
     backendFetchPOST('/login', toSend, async (response) => {
       if (response.status != 200) {
         switch ((await response.json()).msg) {
@@ -32,8 +32,11 @@ export default function Signin() {
             showPopup("Bilinmeyen hata");
             break;
         }
+        setDisableForm(false);
+      } else {
+        let route = await response.json();
+        window.location.href = "/" + route.msg;
       }
-      setDisableForm(false);
     });
   }
 

@@ -29,7 +29,7 @@ var dbConnection = await mysql.createConnection(databaseConnectionOptions);
 
 // Session setup
 
-var sessionStore = new (MySQLStore(session))({},dbConnection);
+var sessionStore = new (MySQLStore(session))({}, dbConnection);
 
 var sessionConfig = {
     key: 'login_session',
@@ -51,6 +51,24 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Functions
+
+function setReqCookie(req, user_id, user_type) {
+    req.session.user_id = user_id;
+    req.session.user_type = user_type;
+}
+
+// Database Functions
+
+async function getUserByEmail(email) {
+    const [row, fields] = await dbConnection.execute(
+        'SELECT user.user_id, user.password, user_type.name FROM user INNER JOIN user_type ON user.user_type_id=user_type.user_type_id WHERE email = ?',
+        [email]
+    );
+
+    return row;
+}
 
 
 // Routes
@@ -87,15 +105,20 @@ app.post('/signup', async (req, res) => {
     });
 
     try {
-        const [row, fields] = await dbConnection.execute(
+        const [row_0, fields_0] = await dbConnection.execute(
             'INSERT INTO user (user_type_id, name, surname, email, password, birth_date, school, grade_branch) VALUES (?,?,?,?,?,?,?,?)',
             [userInfo.type, userInfo.name, userInfo.surname, userInfo.email, userInfo.password, userInfo.birthDate, userInfo.school, userInfo.gradeBranch]
         );
+
+        let row = await getUserByEmail(userInfo.email);
+
+        // Setting cookie
+        setReqCookie(req, row[0].user_id, row[0].name);
+        res.status(200).send(JSON.stringify({ msg: req.session.user_type }));
+
     } catch (error) {
         return res.status(400).json({ msg: error.code });
     }
-
-    res.status(200).json({ msg: "user is created" });
 });
 
 app.post('/login', async (req, res) => {
@@ -103,10 +126,7 @@ app.post('/login', async (req, res) => {
     // Checking credentials
 
     try {
-        const [row, fields] = await dbConnection.execute(
-            'SELECT password FROM user WHERE email = ?',
-            [req.body.email]
-        );
+        let row = await getUserByEmail(req.body.email);
 
         if (row.length == 0) return res.status(400).json({ msg: "INVALID_CREDENTIALS" });
 
@@ -115,18 +135,17 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ msg: "INVALID_CREDENTIALS" })
         }
 
+        // Setting cookie
+        setReqCookie(req, row[0].user_id, row[0].name);
+        res.status(200).send(JSON.stringify({ msg: req.session.user_type }));
+
     } catch (error) {
         return res.status(400).json({ msg: "INVALID_CREDENTIALS" });
     }
-
-    // Setting cookie
-    
-    req.session.testSessionData = "My test session data";
-    res.status(200).send(JSON.stringify({ msg: "" }));
 });
 
 app.get('/testFetch', async (req, res) => {
-    console.log(req.session.testSessionData);
+    console.log(req.session);
     return res.json({ data: 'data from backend' });
 });
 
