@@ -3,21 +3,9 @@ import styles from '../styles/Signup.module.css'
 import { useEffect, useState } from 'react';
 import { backendFetchPOST } from '../utils/backendFetch.js';
 import Popup from '../components/Popup.js';
+import FormInputComponent from '../components/FormInputComponent.js';
 
-function FormInputComponent(props) {
-
-    return (
-        <div className={styles.flexRow}>
-            <p className={styles.zeroMargin}>{props.label}</p>
-            <input value={props.value}
-                onChange={(event) => props.onChange(event.target.value)}
-                type={props.type}
-                placeholder={props.placeholder}></input>
-        </div>
-    );
-}
-
-export default function Signin() {
+export default function Signup() {
 
     const [popupInfo, setPopupInfo] = useState({msg: "", show: false})
     const [disableForm, setDisableForm] = useState(false);
@@ -78,11 +66,11 @@ export default function Signin() {
 
     return (
         <>
-            <Popup 
+            <Popup
             message = {popupInfo.message}
             show = {popupInfo.show}
             setPopupInfo = {setPopupInfo} />
-            <div className={`${styles.container} ${disableForm ? styles.test : ''}`}>
+            <div className={`${styles.container} ${disableForm ? styles.disable : ''}`}>
                 <Head>
                     <title>Kayıt</title>
                 </Head>

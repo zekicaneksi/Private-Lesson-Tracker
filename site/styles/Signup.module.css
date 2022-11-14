@@ -31,7 +31,7 @@
     opacity: 50%;
 }
 
-.test{
+.disable{
     pointer-events: none;
     opacity: 0.4;
 }

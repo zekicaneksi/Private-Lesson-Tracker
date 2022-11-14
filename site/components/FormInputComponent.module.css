@@ -1,0 +1,11 @@
+.flexRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1em;
+}
+
+.zeroMargin{
+    padding: 0;
+    margin: 0;
+}
