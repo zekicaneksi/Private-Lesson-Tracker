@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { backendFetchPOST } from '../utils/backendFetch.js';
 import Popup from '../components/Popup.js';
 import FormInputComponent from '../components/FormInputComponent.js';
+import CheckUserLoginLayout from '../components/CheckUserLoginLayout';
 
 export default function Signup() {
 
@@ -147,3 +148,12 @@ export default function Signup() {
         </>
     )
 }
+
+Signup.getLayout = function getLayout(Signup) {
+
+    return (
+        <CheckUserLoginLayout>
+            {Signup}
+        </CheckUserLoginLayout>
+    );
+  }

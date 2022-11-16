@@ -147,7 +147,7 @@ app.post('/login', async (req, res) => {
 app.get('/getUserInfo', async (req, res) => {
     try {
         const [row, fields] = await dbConnection.execute(
-            'SELECT user.user_id, user_type.name, user.surname, user_type.name as user_type FROM user INNER JOIN user_type ON user.user_type_id=user_type.user_type_id WHERE user_id = ?',
+            'SELECT user.user_id, user.name, user.surname, user_type.name as user_type FROM user INNER JOIN user_type ON user.user_type_id=user_type.user_type_id WHERE user_id = ?',
             [req.session.user_id]);
 
         return res.status(200).json({
@@ -162,6 +162,11 @@ app.get('/getUserInfo', async (req, res) => {
         return res.status(400).json({msg: "NOT_LOGGED_IN"});
     }
 
+});
+
+app.get('/signout', async (req, res) => {
+    req.session.destroy();
+    res.status(200).send();
 });
 
 app.listen(process.env.PORT);

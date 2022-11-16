@@ -3,6 +3,7 @@ import styles from '../styles/Signin.module.css';
 import Popup from '../components/Popup.js';
 import FormInputComponent from '../components/FormInputComponent.js';
 import { backendFetchPOST } from '../utils/backendFetch';
+import CheckUserLoginLayout from '../components/CheckUserLoginLayout';
 import { useState } from 'react';
 
 export default function Signin() {
@@ -71,4 +72,13 @@ export default function Signin() {
       </div>
     </>
   )
+}
+
+Signin.getLayout = function getLayout(Signin) {
+
+  return (
+      <CheckUserLoginLayout>
+          {Signin}
+      </CheckUserLoginLayout>
+  );
 }

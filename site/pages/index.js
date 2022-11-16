@@ -1,9 +1,7 @@
 import { useEffect } from "react"
-import { useRouter } from "next/router"
 import { backendFetchGET } from "../utils/backendFetch"
 
 export default function Home() {
-  const router = useRouter()
 
   useEffect(() => {
 
