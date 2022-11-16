@@ -1,20 +1,20 @@
 import Layout from '../../components/Layout.js';
 import { teacherRoutes } from "../../utils/NavbarRoutes";
 
-export default function Index() {
+export default function Notes() {
 
     return (
         <div>
-            <p>hello from teacher homepage</p>
+            <p>hello from teacher - Notes</p>
         </div>
     )
 }
 
-Index.getLayout = function getLayout(Index) {
+Notes.getLayout = function getLayout(Notes) {
 
     return (
         <Layout routes = {teacherRoutes}>
-            {Index}
+            {Notes}
         </Layout>
     );
 }

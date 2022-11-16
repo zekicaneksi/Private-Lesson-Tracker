@@ -144,9 +144,24 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.get('/testFetch', async (req, res) => {
-    console.log(req.session);
-    return res.json({ data: 'data from backend' });
+app.get('/getUserInfo', async (req, res) => {
+    try {
+        const [row, fields] = await dbConnection.execute(
+            'SELECT user.user_id, user_type.name, user.surname, user_type.name as user_type FROM user INNER JOIN user_type ON user.user_type_id=user_type.user_type_id WHERE user_id = ?',
+            [req.session.user_id]);
+
+        return res.status(200).json({
+            user_id: row[0].user_id,
+            name: row[0].name,
+            surname: row[0].surname,
+            user_type: row[0].user_type
+        });
+
+
+    } catch (error) {
+        return res.status(400).json({msg: "NOT_LOGGED_IN"});
+    }
+
 });
 
 app.listen(process.env.PORT);

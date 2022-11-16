@@ -1,20 +1,20 @@
 import Layout from '../../components/Layout.js';
 import { guardianRoutes } from "../../utils/NavbarRoutes";
 
-export default function Index() {
+export default function Lessons() {
 
     return (
         <div>
-            <p>hello from guardian homepage</p>
+            <p>hello from guardian - lessons</p>
         </div>
     )
 }
 
-Index.getLayout = function getLayout(Index) {
+Lessons.getLayout = function getLayout(Lessons) {
 
     return (
         <Layout routes = {guardianRoutes}>
-            {Index}
+            {Lessons}
         </Layout>
     );
 }
