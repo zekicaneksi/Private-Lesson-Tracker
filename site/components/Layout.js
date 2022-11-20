@@ -1,5 +1,6 @@
 import styles from './Layout.module.css';
 import Link from 'next/link';
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react';
 import { backendFetchGET } from '../utils/backendFetch.js';
 
@@ -15,6 +16,8 @@ function NotificationBar(props) {
 }
 
 export default function Layout(props) {
+
+    const router = useRouter();
 
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
@@ -44,8 +47,9 @@ export default function Layout(props) {
     }
 
     let navbarComponents = props.routes.map((route) => {
+        let isSelected = (route.route == router.pathname ? true : false);
         return (
-            <Link className={`${styles.link}`}
+            <Link className={`${styles.link} ${isSelected ? styles.linkSelected : ''}`}
                 key={route.route}
                 href={route.route}>
                 {route.name}</Link>

@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: row;
     position: absolute;
+    background-color: #ababab;
 }
 
 .container p{
@@ -11,11 +12,11 @@
 }
 
 .navbar{
-    width: 20%;
+    width: 15%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-style: solid
+    border-style: solid;
 }
 
 .navbar > a:last-child{
@@ -27,7 +28,7 @@
 .contentOuterContainer{
     display: flex;
     flex-direction: column;
-    width: 80%;
+    width: 85%;
     height: 100%;
     overflow: auto;
 }
@@ -52,6 +53,14 @@
 
 .link:link, .link:visited{
     color: black;
+}
+
+.link:hover{
+    background-color: #7a7979;
+}
+
+.linkSelected{
+    background-color: #7a7979;
 }
 
 .notificationBarContainer{
