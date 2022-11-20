@@ -91,6 +91,16 @@ Table Relation {
   }
 }
 
+Table Relation_Request {
+  	relation_request_id int
+    from_user_id int [ref: > User.user_id]
+    to_user_id int [ref: > User.user_id]
+    
+  Indexes {
+    (relation_request_id) [pk]
+  }
+}
+
 Table Personal_Note {
   personal_note_id int
   user_id int [ref: > User.user_id]
@@ -123,20 +133,11 @@ Table Message {
   }
 }
 
-Table Notification_Type {
-  notification_type_id int
-  name varchar
-  
-  Indexes {
-    (notification_type_id) [pk]
-  }
-}
-
 Table Notification {
   notification_id int
-  type_id int [ref: > Notification_Type.notification_type_id]
   user_id int [ref: > User.user_id]
   content varchar
+  dismissable boolean
   
   Indexes {
     (notification_id) [pk]

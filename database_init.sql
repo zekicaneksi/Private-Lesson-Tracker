@@ -85,6 +85,17 @@ CREATE TABLE Relation (
     CHECK (user1_id != user2_id)
 );
 
+CREATE TABLE Relation_Request (
+	relation_request_id INT PRIMARY KEY AUTO_INCREMENT,
+    from_user_id INT NOT NULL,
+    to_user_id INT NOT NULL,
+    
+    FOREIGN KEY (from_user_id) REFERENCES User (user_id),
+    FOREIGN KEY (to_user_id) REFERENCES User (user_id),
+    
+    CHECK (from_user_id != to_user_id)
+);
+
 CREATE TABLE Personal_Note (
 	personal_note_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -114,18 +125,12 @@ CREATE TABLE Message (
     FOREIGN KEY (type_id) REFERENCES Message_Type (message_type_id)
 );
 
-CREATE TABLE Notification_Type (
-	notification_type_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL
-);
-
 CREATE TABLE Notification (
 	notification_id INT PRIMARY KEY AUTO_INCREMENT,
-    type_id INT NOT NULL,
     user_id INT NOT NULL,
     content varchar(255) NOT NULL,
+    dismissable BOOLEAN NOT NULL,
     
-    FOREIGN KEY (type_id) REFERENCES Notification_Type (notification_type_id),
     FOREIGN KEY (user_id) REFERENCES User (user_id)
 );
 
