@@ -82,5 +82,5 @@ To build the project;
 
 To run the project;
 
-- `npm run start` in `site/`
 - `npm run start` in `backend/`
+- `npm run start` in `site/`
