@@ -1,3 +1,7 @@
+:root{
+  --borderWidth: 3px;
+}
+
 html,
 body {
   padding: 0;

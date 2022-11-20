@@ -70,6 +70,19 @@ async function getUserByEmail(email) {
     return row;
 }
 
+async function dismissNotification(user_id, notification_id){
+    try {
+        const [row, fields] = await dbConnection.execute(
+            'DELETE FROM notification WHERE user_id = ? AND notification_id = ?',
+            [user_id, notification_id]);
+
+        return true;
+
+    } catch (error) {
+        return false;
+    }
+}
+
 
 // Routes
 
@@ -146,20 +159,35 @@ app.post('/login', async (req, res) => {
 
 app.get('/getUserInfo', async (req, res) => {
     try {
+
+        let userInfo = {};
+
         const [row, fields] = await dbConnection.execute(
             'SELECT user.user_id, user.name, user.surname, user_type.name as user_type FROM user INNER JOIN user_type ON user.user_type_id=user_type.user_type_id WHERE user_id = ?',
             [req.session.user_id]);
 
-        return res.status(200).json({
-            user_id: row[0].user_id,
-            name: row[0].name,
-            surname: row[0].surname,
-            user_type: row[0].user_type
+
+        userInfo.user_id = row[0].user_id;
+        userInfo.name = row[0].name;
+        userInfo.surname = row[0].surname;
+        userInfo.user_type = row[0].user_type;
+
+        const [notifications_sql] = await dbConnection.execute(
+            'SELECT * FROM notification WHERE user_id = ? ORDER BY dismissable ASC',
+            [req.session.user_id]);
+
+        let notifications = notifications_sql.filter((elem) => {
+            delete elem.user_id;
+            return true;
         });
+
+        userInfo.notifications = notifications;
+
+        return res.status(200).send(JSON.stringify(userInfo));
 
 
     } catch (error) {
-        return res.status(400).json({msg: "NOT_LOGGED_IN"});
+        return res.status(400).json({ msg: "NOT_LOGGED_IN" });
     }
 
 });
@@ -167,6 +195,11 @@ app.get('/getUserInfo', async (req, res) => {
 app.get('/signout', async (req, res) => {
     req.session.destroy();
     res.status(200).send();
+});
+
+app.post('/dismissNotification', async (req,res) => {
+    if(await dismissNotification(req.session.user_id, req.body.notification_id)) return res.status(200).send();
+    else return res.status(400).json({ msg: "NOT_LOGGED_IN" });
 });
 
 app.listen(process.env.PORT);
