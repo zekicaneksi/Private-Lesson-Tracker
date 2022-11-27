@@ -171,17 +171,35 @@ app.get('/getUserInfo', async (req, res) => {
         userInfo.name = row[0].name;
         userInfo.surname = row[0].surname;
         userInfo.user_type = row[0].user_type;
+        userInfo.notifications = [];
 
+
+        // --- Setting notifications
+
+        // Notificaiton Table
         const [notifications_sql] = await dbConnection.execute(
-            'SELECT * FROM notification WHERE user_id = ? ORDER BY dismissable ASC',
+            'SELECT * FROM notification WHERE user_id = ?',
             [req.session.user_id]);
 
-        let notifications = notifications_sql.filter((elem) => {
+        notifications_sql.forEach(elem => {
             delete elem.user_id;
-            return true;
+            elem.dismissable = true;
+            userInfo.notifications.push(elem);
         });
 
-        userInfo.notifications = notifications;
+        // Relation Requests
+
+        const [relationRequests_sql] = await dbConnection.execute(
+            'SELECT * FROM Relation_Request WHERE to_user_id = ?',
+            [req.session.user_id]);
+
+        if (relationRequests_sql.length > 0) {
+            let relationRequestNotification = {
+                dismissable: false,
+                content: relationRequests_sql.length + " ilişki isteğiniz var"
+            };
+            userInfo.notifications.push(relationRequestNotification);
+        }
 
         return res.status(200).send(JSON.stringify(userInfo));
 

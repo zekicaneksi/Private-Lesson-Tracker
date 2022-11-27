@@ -21,9 +21,9 @@ function NotificationBar(props) {
         })
     }
 
-    const notificationElements = props.userInfo.notifications.map(notification => {
+    const notificationElements = props.userInfo.notifications.map((notification, index) => {
         return (
-            <div key={notification.notification_id}
+            <div key={index}
                 className={styles.notificationElementContainer}>
                 <p>{notification.content}</p>
                 { notification.dismissable ?

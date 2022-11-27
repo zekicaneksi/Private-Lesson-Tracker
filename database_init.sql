@@ -143,7 +143,6 @@ CREATE TABLE Notification (
 	notification_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     content varchar(255) NOT NULL,
-    dismissable BOOLEAN NOT NULL,
     
     FOREIGN KEY (user_id) REFERENCES User (user_id)
 );

@@ -137,7 +137,6 @@ Table Notification {
   notification_id int
   user_id int [ref: > User.user_id]
   content varchar
-  dismissable boolean
   
   Indexes {
     (notification_id) [pk]
