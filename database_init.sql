@@ -89,6 +89,8 @@ CREATE TABLE Relation_Request (
 	relation_request_id INT PRIMARY KEY AUTO_INCREMENT,
     from_user_id INT NOT NULL,
     to_user_id INT NOT NULL,
+    nickname VARCHAR(40),
+    personal_note varchar(255),
     
     FOREIGN KEY (from_user_id) REFERENCES User (user_id),
     FOREIGN KEY (to_user_id) REFERENCES User (user_id)

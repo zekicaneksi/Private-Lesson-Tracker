@@ -95,7 +95,9 @@ Table Relation_Request {
   	relation_request_id int
     from_user_id int [ref: > User.user_id]
     to_user_id int [ref: > User.user_id]
-    
+    nickname varchar
+    personal_note varchar    
+
   Indexes {
     (relation_request_id) [pk]
   }

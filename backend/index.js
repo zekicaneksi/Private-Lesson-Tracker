@@ -237,8 +237,8 @@ app.get('/getUserById', async (req, res) => {
 app.post('/createRelationRequest', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
-            'INSERT INTO Relation_Request (from_user_id, to_user_id) VALUES (?,?)',
-            [req.session.user_id, req.body.user_id]);
+            'INSERT INTO Relation_Request (from_user_id, to_user_id, nickname, personal_note) VALUES (?,?,?,?)',
+            [req.session.user_id, req.body.user_id, req.body.nickname, req.body.personalNote]);
 
         res.status(200).send();
 
