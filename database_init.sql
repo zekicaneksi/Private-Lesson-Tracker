@@ -91,10 +91,24 @@ CREATE TABLE Relation_Request (
     to_user_id INT NOT NULL,
     
     FOREIGN KEY (from_user_id) REFERENCES User (user_id),
-    FOREIGN KEY (to_user_id) REFERENCES User (user_id),
-    
-    CHECK (from_user_id != to_user_id)
+    FOREIGN KEY (to_user_id) REFERENCES User (user_id)
 );
+
+DELIMITER //
+CREATE TRIGGER checkRelationRequest BEFORE INSERT ON Relation_Request
+FOR EACH ROW
+BEGIN
+	DECLARE fromUserTypeId INT;
+    DECLARE toUserTypeId INT;
+    SET fromUserTypeId = (SELECT user_type_id FROM User WHERE user_id = NEW.from_user_id);
+    SET toUserTypeId = (SELECT user_type_id FROM User WHERE user_id = NEW.to_user_id);
+    IF (fromUserTypeId != 2 OR toUserTypeId = 2) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "checkRelationRequest error";
+	ELSEIF (SELECT Count(*) FROM Relation_Request WHERE from_user_id = NEW.from_user_id AND to_user_id = NEW.to_user_id) != 0 THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "checkRelationRequest duplicate";
+    END IF;
+END//
+DELIMITER ;
 
 CREATE TABLE Personal_Note (
 	personal_note_id INT PRIMARY KEY AUTO_INCREMENT,

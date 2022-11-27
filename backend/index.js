@@ -70,7 +70,7 @@ async function getUserByEmail(email) {
     return row;
 }
 
-async function dismissNotification(user_id, notification_id){
+async function dismissNotification(user_id, notification_id) {
     try {
         const [row, fields] = await dbConnection.execute(
             'DELETE FROM notification WHERE user_id = ? AND notification_id = ?',
@@ -197,9 +197,36 @@ app.get('/signout', async (req, res) => {
     res.status(200).send();
 });
 
-app.post('/dismissNotification', async (req,res) => {
-    if(await dismissNotification(req.session.user_id, req.body.notification_id)) return res.status(200).send();
+app.post('/dismissNotification', async (req, res) => {
+    if (await dismissNotification(req.session.user_id, req.body.notification_id)) return res.status(200).send();
     else return res.status(400).json({ msg: "NOT_LOGGED_IN" });
+});
+
+app.get('/getUserById', async (req, res) => {
+    try {
+        const [user] = await dbConnection.execute(
+            'SELECT User.user_id, User.name, User.surname, User.birth_date, User.school, User.grade_branch, User_Type.name as user_type FROM User INNER JOIN User_Type ON user.user_type_id = user_type.user_type_id WHERE user_id = ?',
+            [req.query.id]);
+
+        if (user.length == 0) return res.status(404).send();
+        return res.status(200).send(user[0]);
+
+    } catch (error) {
+        return res.status(400).send();
+    }
+});
+
+app.post('/createRelationRequest', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'INSERT INTO Relation_Request (from_user_id, to_user_id) VALUES (?,?)',
+            [req.session.user_id, req.body.user_id]);
+
+        res.status(200).send();
+
+    } catch (error) {
+        res.status(400).send();
+    }
 });
 
 app.listen(process.env.PORT);

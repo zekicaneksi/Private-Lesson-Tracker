@@ -13,3 +13,21 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.fieldContainer{
+  border: 1px solid;
+  position: relative;
+  padding: 5%;
+  width: fit-content;
+}
+
+.fieldContainer > p:first-of-type{
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(-50%);
+  margin-left: 5%;
+  background-color: #ababab;
+  padding-left: 1%;
+  padding-right: 1%;
+}

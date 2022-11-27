@@ -1,0 +1,22 @@
+.pageContainer{
+    padding:2%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.sideContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3em;
+    width: 50%;
+}
+
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1em;
+    align-items: center;
+}

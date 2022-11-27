@@ -1,0 +1,64 @@
+/* responsiveness values start*/
+
+.addTeacherGuardianField button, .addTeacherGuardianField input, .addTeacherGuardianField textarea{
+    width: 13em;
+}
+
+.idInputContainer input{
+    width: 11em;
+}
+
+.idInputContainer img{
+    width: 1.5em;
+    height: 1.5em;
+}
+
+/* responsiveness values end*/
+
+.addTeacherGuardianField{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding-right: 5%;
+}
+
+.addTeacherGuardianField button{
+    margin-left: auto;
+}
+
+.idInputContainer{
+    display: flex;
+    gap: 2%;
+}
+
+.idInputContainer img:hover{
+    background-color: grey;
+}
+
+.noteTextarea{
+    resize:none;
+    height: 5em;
+}
+
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1em;
+    align-items: center;
+}
+
+.loadingDiv{
+    gap: 1em;
+    display: flex;
+    flex-direction: column;
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.readOnlyInput{
+    color: #999
+}
