@@ -277,4 +277,31 @@ app.post('/cancelRelationRequest', async (req, res) => {
     }
 });
 
+app.get('/getTeacherRelations', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content FROM (SELECT relation_id, user_id, name, surname FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 1) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+        
+        return res.status(400).send();
+    }
+});
+
+app.post('/editPersonalNote', async (req,res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'UPDATE Personal_Note SET nickname = ?, content = ? WHERE user_id = ? AND personal_note_id = ?',
+            [req.body.nickname, req.body.content, req.session.user_id, req.body.personal_note_id]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(400).send();
+    }
+});
+
 app.listen(process.env.PORT);

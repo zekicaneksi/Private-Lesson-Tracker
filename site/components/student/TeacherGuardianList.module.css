@@ -1,0 +1,27 @@
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1em;
+    align-items: center;
+}
+
+.container{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.noteTextarea{
+    resize:none;
+    height: 5em;
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.readOnlyInput{
+    color: #999;
+}

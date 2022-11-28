@@ -3,6 +3,7 @@ import { studentRoutes } from "../../utils/NavbarRoutes";
 import styles from '../../styles/student/Teachers.module.css';
 import AddTeacherGuardian from '../../components/student/AddTeacherGuardian.js';
 import SentRequests from '../../components/student/SentRequests.js';
+import TeacherGuardianList from '../../components/student/TeacherGuardianList.js';
 import { useState } from 'react';
 
 export default function Teachers() {
@@ -12,14 +13,8 @@ export default function Teachers() {
     return (
         <div className={styles.pageContainer}>
 
-            <div>
-                <div className={`fieldContainer`}>
-                    <p>Öğretmen Listesi</p>
-                    <div className={styles.fieldPair}>
-                        <p>ID:</p>
-                        <input></input>
-                    </div>
-                </div>
+            <div className={styles.sideContainer}>
+                <TeacherGuardianList type="teacher"/>
             </div>
 
             <div className={styles.sideContainer}>
