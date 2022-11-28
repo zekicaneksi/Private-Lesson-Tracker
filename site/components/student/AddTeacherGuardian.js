@@ -1,9 +1,9 @@
 import styles from './AddTeacherGuardian.module.css';
 import Image from 'next/image';
-import Img_Search from './../public/search.svg';
+import Img_Search from './../../public/search.svg';
 import { useState } from 'react';
-import { backendFetchGET, backendFetchPOST } from '../utils/backendFetch';
-import Popup from './Popup.js';
+import { backendFetchGET, backendFetchPOST } from '../../utils/backendFetch.js';
+import Popup from '../Popup.js';
 
 export default function AddTeacherGuardian(props) {
 
@@ -69,6 +69,12 @@ export default function AddTeacherGuardian(props) {
             personalNote: formValues.personalNote
         }, async (response) => {
             if(response.status == 200){
+                let addedRequest = await response.json();
+                props.setSentRequests((old) => {
+                   let newArr = [...old];
+                   newArr.push(addedRequest); 
+                   return newArr;
+                });
                 showPopup("İstek Gönderildi");
             } else {
                 showPopup("Daha önce istek gönderildi");

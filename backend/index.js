@@ -240,10 +240,40 @@ app.post('/createRelationRequest', async (req, res) => {
             'INSERT INTO Relation_Request (from_user_id, to_user_id, nickname, personal_note) VALUES (?,?,?,?)',
             [req.session.user_id, req.body.user_id, req.body.nickname, req.body.personalNote]);
 
-        res.status(200).send();
+        const [inserted_request_sql] = await dbConnection.execute(
+            'SELECT relation_request_id, name, surname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE relation_request_id = ?',
+            [result.insertId]
+        );
+        res.status(200).send(JSON.stringify(inserted_request_sql[0]));
 
     } catch (error) {
         res.status(400).send();
+    }
+});
+
+app.get('/sentRelationRequests', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'SELECT relation_request_id, name, surname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
+            [req.session.user_id]);
+
+        return res.status(200).send(JSON.stringify(result));
+
+    } catch (error) {
+        return res.status(400).send();
+    }
+});
+
+app.post('/cancelRelationRequest', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'DELETE FROM Relation_Request WHERE relation_request_id = ? AND from_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        return res.status(200).send({ relation_request_id: req.body.relation_request_id });
+    } catch (error) {
+        return res.status(404).send();
     }
 });
 

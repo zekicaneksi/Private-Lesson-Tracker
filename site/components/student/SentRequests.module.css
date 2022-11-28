@@ -1,0 +1,11 @@
+.flexDiv{
+    display: flex;
+    flex-direction: column;
+    width: 10em;
+    gap: 1em;
+}
+
+.flexDiv select{
+    overflow: auto;
+    width: 100%;
+}
