@@ -40,7 +40,7 @@ export default function AddTeacherGuardian(props) {
             else if (response.status == 404) showPopup('Kullanıcı Bulunamadı');
             else {
                 let res = await response.json();
-                if (res.user_type != "teacher") showPopup("ID'si verilen kullanıcı öğretmen değil");
+                if (res.user_type != props.type) showPopup("ID'si verilen kullanıcı "+ (props.type == 'teacher' ? 'öğretmen' : 'veli') +" değil");
                 else {
                     setFormValues((old) => {
                         let newValues = { ...old };

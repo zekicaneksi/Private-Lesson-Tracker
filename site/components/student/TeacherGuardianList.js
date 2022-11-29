@@ -3,13 +3,12 @@ import { useEffect, useState } from 'react';
 import { backendFetchGET, backendFetchPOST } from '../../utils/backendFetch';
 import PopupConfirmation from '../PopupConfirmation';
 import { useRouter } from 'next/router';
-import { studentRoutes } from '../../utils/NavbarRoutes';
 
 export default function TeacherGuardianList(props) {
 
     const types = [
         { type: "teacher", route: '/getTeacherRelations', label: 'Öğretmen' },
-        { type: "?", route: '/?', label: 'Veli' }
+        { type: "guardian", route: '/getGuardianRelations', label: 'Veli' }
     ];
 
     let type;
@@ -17,7 +16,7 @@ export default function TeacherGuardianList(props) {
     types.forEach(element => {
         if (element.type == props.type) type = element;
     });
-
+    
     const router = useRouter();
 
     const [confirmationPopup, setConfirmationPopup] = useState({ msg: '', show: false, yesCallback: null, noCallback: null });

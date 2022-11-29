@@ -254,7 +254,7 @@ app.post('/createRelationRequest', async (req, res) => {
 app.get('/sentRelationRequests', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
-            'SELECT relation_request_id, name, surname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
+            'SELECT relation_request_id, user_type_id, name, surname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
             [req.session.user_id]);
 
         return res.status(200).send(JSON.stringify(result));
@@ -281,6 +281,20 @@ app.get('/getTeacherRelations', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
             'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content FROM (SELECT relation_id, user_id, name, surname FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 1) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+        
+        return res.status(400).send();
+    }
+});
+
+app.get('/getGuardianRelations', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content FROM (SELECT relation_id, user_id, name, surname FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 3) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
             [req.session.user_id, req.session.user_id, req.session.user_id]
         );
 

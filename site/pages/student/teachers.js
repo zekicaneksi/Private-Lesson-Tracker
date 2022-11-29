@@ -1,6 +1,6 @@
 import Layout from '../../components/Layout.js';
 import { studentRoutes } from "../../utils/NavbarRoutes";
-import styles from '../../styles/student/Teachers.module.css';
+import styles from '../../styles/student/TeachersGuardians.module.css';
 import AddTeacherGuardian from '../../components/student/AddTeacherGuardian.js';
 import SentRequests from '../../components/student/SentRequests.js';
 import TeacherGuardianList from '../../components/student/TeacherGuardianList.js';
@@ -22,6 +22,7 @@ export default function Teachers() {
                 type="teacher"
                 setSentRequests = {setSentRequests}/>
                 <SentRequests 
+                type = "teacher"
                 sentRequests = {sentRequests}
                 setSentRequests = {setSentRequests}/>
             </div>

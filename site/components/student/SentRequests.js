@@ -8,10 +8,13 @@ export default function SentRequests(props) {
 
     const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
 
+    const user_type_id = (props.type == 'teacher' ? 1 : 3);
+
     useEffect(() => {
         backendFetchGET('/sentRelationRequests', async (response) => {
             if (response.status == 200) {
-                props.setSentRequests((await response.json()));
+                let sentRequests = await response.json();
+                props.setSentRequests(sentRequests.filter(elem => elem.user_type_id == user_type_id));
             }
         })
     }, []);
