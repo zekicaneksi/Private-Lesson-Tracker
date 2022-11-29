@@ -1,6 +1,7 @@
 import styles from './TeacherGuardianList.module.css';
 import { useEffect, useState } from 'react';
 import { backendFetchGET, backendFetchPOST } from '../../utils/backendFetch';
+import PopupConfirmation from '../PopupConfirmation';
 
 export default function TeacherGuardianList(props) {
 
@@ -15,6 +16,7 @@ export default function TeacherGuardianList(props) {
         if (element.type == props.type) type = element;
     });
 
+    const [confirmationPopup, setConfirmationPopup] = useState({ msg: '', show: false, yesCallback: null, noCallback: null });
     const [loading, setLoading] = useState(true);
     const [selectValues, setSelectValues] = useState([]);
     const [formValues, setFormValues] = useState({
@@ -27,23 +29,23 @@ export default function TeacherGuardianList(props) {
         personalNoteInput: ''
     });
 
-    function changeFormValue(key, value){
+    function changeFormValue(key, value) {
         setFormValues((old) => {
-            let newVal = {...old};
+            let newVal = { ...old };
             newVal[key] = value;
             return newVal;
         })
     }
 
-    function selectOnChangeHandle(event){
+    function selectOnChangeHandle(event) {
         setFormValues((old) => {
             let selectedValue;
-            
+
             selectValues.forEach(elem => {
-                if(elem.relation_id == event.target.value) selectedValue = elem;
+                if (elem.relation_id == event.target.value) selectedValue = elem;
             });
 
-            let newVal = {...old};
+            let newVal = { ...old };
             newVal.selectedRelationId = event.target.value;
             newVal.nameInput = selectedValue.name + ' ' + selectedValue.surname;
             newVal.nicknameInput = selectedValue.nickname;
@@ -53,22 +55,28 @@ export default function TeacherGuardianList(props) {
         })
     }
 
-    function editBtnHandle(){
-        setLoading(true);
-        let personal_note_id;
+    function getSelectedRelation() {
+        let toReturn;
         formValues.selectValues.forEach(elem => {
-            if(elem.relation_id == formValues.selectedRelationId) personal_note_id = elem.personal_note_id;
-        })
+            if (elem.relation_id == formValues.selectedRelationId) toReturn = elem;
+        });
+        return toReturn;
+    }
+
+    function editBtnHandle() {
+        setLoading(true);
+        let personal_note_id = getSelectedRelation().personal_note_id;
+
         backendFetchPOST('/editPersonalNote', {
             nickname: formValues.nicknameInput,
             content: formValues.personalNoteInput,
             personal_note_id: personal_note_id
         }, async (response) => {
-            if(response.status == 200){
+            if (response.status == 200) {
                 setFormValues((old) => {
-                    let newValues = {...old};
+                    let newValues = { ...old };
                     newValues.selectValues.forEach((elem, index) => {
-                        if(elem.relation_id == formValues.selectedRelationId){
+                        if (elem.relation_id == formValues.selectedRelationId) {
                             newValues.selectValues[index].nickname = old.nicknameInput;
                             newValues.selectValues[index].content = old.personalNoteInput;
                         }
@@ -77,6 +85,37 @@ export default function TeacherGuardianList(props) {
                 })
                 setLoading(false);
             }
+        });
+    }
+
+    function deleteRelationBtnHandle() {
+
+        function iliskiyiSil() {
+            setLoading(true);
+            let selectedRelationId = getSelectedRelation().relation_id;
+            backendFetchPOST('/deleteRelation', { relation_id: selectedRelationId }, async (response) => {
+                if (response.status == 200) {
+                    changeFormValue('selectedRelationId', null);
+
+                    setSelectValues((old) => {
+                        let newArr = [...old];
+                        let holdIndex;
+                        newArr.forEach((elem, index) => {
+                            if (elem.relation_id == selectedRelationId) holdIndex = index;
+                        });
+                        newArr.splice(holdIndex, 1);
+                        return newArr;
+                    });
+                    setLoading(false);
+                }
+            });
+        }
+
+        setConfirmationPopup({
+            msg: 'İlişkiyi silmek istediğinize emin misiniz?',
+            show: true,
+            yesCallback: () => { iliskiyiSil() },
+            noCallback: () => { }
         });
     }
 
@@ -91,44 +130,50 @@ export default function TeacherGuardianList(props) {
         });
     }, []);
 
-    const selectElements = formValues.selectValues.map(elem => {
+    const selectElements = selectValues.map(elem => {
         let fullName = elem.name + ' ' + elem.surname;
         const pattern = new RegExp(formValues.searchInput, 'i');
-        if(formValues.searchInput == '' || (fullName.search(pattern) != -1)){
-            return <option key={elem.relation_id} value={elem.relation_id}>{fullName}</option>
+        if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
+            return (
+                <option key={elem.relation_id} value={elem.relation_id}>{fullName}</option>
+            );
         }
     })
 
     return (
-        <div className={`fieldContainer ${styles.container} ${loading ? styles.disabled : ''}`}>
-            <p>{type.label} Listesi</p>
-            <input placeholder='Ara...' onChange={(event) => {changeFormValue('searchInput', event.target.value); changeFormValue('selectedRelationId', null)}}></input>
-            <select size={5} onChange={selectOnChangeHandle}>
-                {selectElements}
-            </select>
-            <div className={`${styles.container} ${formValues.selectedRelationId == null ? styles.disabled : ''}`}>
-                <button>Mesaj Gönder</button>
-                <div className={styles.fieldPair}>
-                    <p>Ad:</p>
-                    <input readOnly={true} className={styles.readOnlyInput}
-                    value={formValues.nameInput}></input>
+        <>
+            <PopupConfirmation info={confirmationPopup} setInfo={setConfirmationPopup} />
+            <div className={`fieldContainer ${styles.container} ${loading ? styles.disabled : ''}`}>
+                <p>{type.label} Listesi</p>
+                <input placeholder='Ara...' onChange={(event) => { changeFormValue('searchInput', event.target.value); changeFormValue('selectedRelationId', null) }}></input>
+                <select size={5} onChange={selectOnChangeHandle}>
+                    {selectElements}
+                </select>
+                <div className={`${styles.container} ${formValues.selectedRelationId == null ? styles.disabled : ''}`}>
+                    <button>Mesaj Gönder</button>
+                    <div className={styles.fieldPair}>
+                        <p>Ad:</p>
+                        <input readOnly={true} className={styles.readOnlyInput}
+                            value={formValues.nameInput}></input>
+                    </div>
+                    <div className={styles.fieldPair}>
+                        <p>Takma Ad:</p>
+                        <input value={formValues.nicknameInput} onChange={(event) => { changeFormValue('nicknameInput', event.target.value) }}></input>
+                    </div>
+                    <div className={styles.fieldPair}>
+                        <p>ID:</p>
+                        <input readOnly={true} className={styles.readOnlyInput}
+                            value={formValues.idInput}></input>
+                    </div>
+                    <div className={styles.fieldPair}>
+                        <p>Kişisel Not:</p>
+                        <textarea className={styles.noteTextarea}
+                            value={formValues.personalNoteInput} onChange={(event) => { changeFormValue('personalNoteInput', event.target.value) }}></textarea>
+                    </div>
+                    <button onClick={editBtnHandle}>Düzenle</button>
+                    <button onClick={deleteRelationBtnHandle}>İlişkiyi Sil</button>
                 </div>
-                <div className={styles.fieldPair}>
-                    <p>Takma Ad:</p>
-                    <input value={formValues.nicknameInput} onChange={(event) => {changeFormValue('nicknameInput', event.target.value)}}></input>
-                </div>
-                <div className={styles.fieldPair}>
-                    <p>ID:</p>
-                    <input readOnly={true} className={styles.readOnlyInput}
-                    value={formValues.idInput}></input>
-                </div>
-                <div className={styles.fieldPair}>
-                    <p>Kişisel Not:</p>
-                    <textarea className={styles.noteTextarea}
-                    value={formValues.personalNoteInput} onChange={(event) => {changeFormValue('personalNoteInput', event.target.value)}}></textarea>
-                </div>
-                <button onClick={editBtnHandle}>Düzenle</button>
             </div>
-        </div>
+        </>
     );
 }

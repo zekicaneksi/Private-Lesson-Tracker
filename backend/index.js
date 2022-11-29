@@ -304,4 +304,25 @@ app.post('/editPersonalNote', async (req,res) => {
     }
 });
 
+app.post('/deleteRelation', async (req,res) => {
+    try {
+
+        // Delete personal notes
+
+        const [removePersonalNotes_sql] = await dbConnection.execute(
+            'DELETE FROM Personal_Note WHERE personal_note_id IN (SELECT DEF.personal_note_id FROM (SELECT* FROM (SELECT * FROM Relation WHERE (user1_id = ? OR user2_id = ?) AND relation_id = ?) As Abc INNER JOIN Personal_Note ON ((user1_id = for_user_id OR user1_id = user_id) AND (user2_id = for_user_id OR user2_id = user_id)) WHERE relation_id = ?) AS DEF WHERE relation_id = ?)',
+            [req.session.user_id, req.session.user_id, req.body.relation_id, req.body.relation_id, req.body.relation_id]
+        );
+
+        const [removeRelation_sql] = await dbConnection.execute(
+            'DELETE FROM Relation WHERE (user1_id = ? OR user2_id = ?) AND relation_id = ?',
+            [req.session.user_id, req.session.user_id, req.body.relation_id]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(400).send();
+    }
+});
+
 app.listen(process.env.PORT);

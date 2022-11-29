@@ -19,3 +19,8 @@
 .container p{
     word-break: break-word;
 }
+
+.flexDiv{
+    display: flex;
+    flex-direction: row;
+}
