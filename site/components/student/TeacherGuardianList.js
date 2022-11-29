@@ -2,6 +2,8 @@ import styles from './TeacherGuardianList.module.css';
 import { useEffect, useState } from 'react';
 import { backendFetchGET, backendFetchPOST } from '../../utils/backendFetch';
 import PopupConfirmation from '../PopupConfirmation';
+import { useRouter } from 'next/router';
+import { studentRoutes } from '../../utils/NavbarRoutes';
 
 export default function TeacherGuardianList(props) {
 
@@ -15,6 +17,8 @@ export default function TeacherGuardianList(props) {
     types.forEach(element => {
         if (element.type == props.type) type = element;
     });
+
+    const router = useRouter();
 
     const [confirmationPopup, setConfirmationPopup] = useState({ msg: '', show: false, yesCallback: null, noCallback: null });
     const [loading, setLoading] = useState(true);
@@ -119,6 +123,13 @@ export default function TeacherGuardianList(props) {
         });
     }
 
+    function sendMsgBtnHandle() {
+        router.push({
+            pathname: '/student/messages',
+            query: { user_id : getSelectedRelation().user_id }
+        }, '/student/messages');
+    }
+
     useEffect(() => {
         backendFetchGET(type.route, async (response) => {
             if (response.status == 200) {
@@ -150,7 +161,7 @@ export default function TeacherGuardianList(props) {
                     {selectElements}
                 </select>
                 <div className={`${styles.container} ${formValues.selectedRelationId == null ? styles.disabled : ''}`}>
-                    <button>Mesaj Gönder</button>
+                    <button onClick={sendMsgBtnHandle}>Mesaj Gönder</button>
                     <div className={styles.fieldPair}>
                         <p>Ad:</p>
                         <input readOnly={true} className={styles.readOnlyInput}
