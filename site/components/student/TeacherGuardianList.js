@@ -16,7 +16,7 @@ export default function TeacherGuardianList(props) {
     types.forEach(element => {
         if (element.type == props.type) type = element;
     });
-    
+
     const router = useRouter();
 
     const [confirmationPopup, setConfirmationPopup] = useState({ msg: '', show: false, yesCallback: null, noCallback: null });
@@ -125,7 +125,7 @@ export default function TeacherGuardianList(props) {
     function sendMsgBtnHandle() {
         router.push({
             pathname: '/student/messages',
-            query: { user_id : getSelectedRelation().user_id }
+            query: { user_id: getSelectedRelation().user_id }
         }, '/student/messages');
     }
 
@@ -141,7 +141,7 @@ export default function TeacherGuardianList(props) {
     }, []);
 
     const selectElements = selectValues.map(elem => {
-        let fullName = elem.name + ' ' + elem.surname + (elem.nickname != '' ? (' (' + elem.nickname +')'): '');
+        let fullName = elem.name + ' ' + elem.surname + (elem.nickname != '' ? (' (' + elem.nickname + ')') : '');
         const pattern = new RegExp(formValues.searchInput, 'i');
         if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
             return (
@@ -159,26 +159,28 @@ export default function TeacherGuardianList(props) {
                 <select size={5} onChange={selectOnChangeHandle}>
                     {selectElements}
                 </select>
-                <div className={`${styles.container} ${formValues.selectedRelationId == null ? styles.disabled : ''}`}>
+                <div className={`${styles.container} ${formValues.selectedRelationId == null ? styles.disabled : ''} ${styles.alignItems}`}>
                     <button onClick={sendMsgBtnHandle}>Mesaj Gönder</button>
-                    <div className={styles.fieldPair}>
-                        <p>Ad:</p>
-                        <input readOnly={true} className={styles.readOnlyInput}
-                            value={formValues.nameInput}></input>
-                    </div>
-                    <div className={styles.fieldPair}>
-                        <p>Takma Ad:</p>
-                        <input value={formValues.nicknameInput} onChange={(event) => { changeFormValue('nicknameInput', event.target.value) }}></input>
-                    </div>
-                    <div className={styles.fieldPair}>
-                        <p>ID:</p>
-                        <input readOnly={true} className={styles.readOnlyInput}
-                            value={formValues.idInput}></input>
-                    </div>
-                    <div className={styles.fieldPair}>
-                        <p>Kişisel Not:</p>
-                        <textarea className={styles.noteTextarea}
-                            value={formValues.personalNoteInput} onChange={(event) => { changeFormValue('personalNoteInput', event.target.value) }}></textarea>
+                    <div className={styles.flexDiv}>
+                        <div className={styles.fieldPair}>
+                            <p>Ad:</p>
+                            <input readOnly={true} className={styles.readOnlyInput}
+                                value={formValues.nameInput}></input>
+                        </div>
+                        <div className={styles.fieldPair}>
+                            <p>Takma Ad:</p>
+                            <input value={formValues.nicknameInput} onChange={(event) => { changeFormValue('nicknameInput', event.target.value) }}></input>
+                        </div>
+                        <div className={styles.fieldPair}>
+                            <p>ID:</p>
+                            <input readOnly={true} className={styles.readOnlyInput}
+                                value={formValues.idInput}></input>
+                        </div>
+                        <div className={styles.fieldPair}>
+                            <p>Kişisel Not:</p>
+                            <textarea className={styles.noteTextarea}
+                                value={formValues.personalNoteInput} onChange={(event) => { changeFormValue('personalNoteInput', event.target.value) }}></textarea>
+                        </div>
                     </div>
                     <button onClick={editBtnHandle}>Düzenle</button>
                     <button onClick={deleteRelationBtnHandle}>İlişkiyi Sil</button>
