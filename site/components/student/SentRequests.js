@@ -36,7 +36,7 @@ export default function SentRequests(props) {
     }
 
     const sentRequests = props.sentRequests.map((elem) => {
-        return <option key={elem.relation_request_id}>{elem.name + ' ' + elem.surname}</option>
+        return <option key={elem.relation_request_id}>{elem.name + ' ' + elem.surname  + (elem.nickname != '' ? (' (' + elem.nickname +')'): '')}</option>
     })
 
     return (

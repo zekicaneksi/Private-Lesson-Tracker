@@ -141,7 +141,7 @@ export default function TeacherGuardianList(props) {
     }, []);
 
     const selectElements = selectValues.map(elem => {
-        let fullName = elem.name + ' ' + elem.surname;
+        let fullName = elem.name + ' ' + elem.surname + (elem.nickname != '' ? (' (' + elem.nickname +')'): '');
         const pattern = new RegExp(formValues.searchInput, 'i');
         if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
             return (

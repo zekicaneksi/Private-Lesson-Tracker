@@ -254,7 +254,7 @@ app.post('/createRelationRequest', async (req, res) => {
 app.get('/sentRelationRequests', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
-            'SELECT relation_request_id, user_type_id, name, surname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
+            'SELECT relation_request_id, user_type_id, name, surname, nickname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
             [req.session.user_id]);
 
         return res.status(200).send(JSON.stringify(result));
