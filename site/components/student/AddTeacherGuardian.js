@@ -20,11 +20,11 @@ export default function AddTeacherGuardian(props) {
         setPopupInfo({ message: msg, show: true });
     }
 
-    function resetFormValues(){
+    function resetFormValues() {
         setFormValues((old) => {
-            let newValues = {...old};
+            let newValues = { ...old };
             Object.keys(newValues).forEach(key => {
-                if(key === 'id') return;
+                if (key === 'id') return;
                 newValues[key] = '';
             });
             return newValues;
@@ -40,7 +40,7 @@ export default function AddTeacherGuardian(props) {
             else if (response.status == 404) showPopup('Kullanıcı Bulunamadı');
             else {
                 let res = await response.json();
-                if (res.user_type != props.type) showPopup("ID'si verilen kullanıcı "+ (props.type == 'teacher' ? 'öğretmen' : 'veli') +" değil");
+                if (res.user_type != props.type) showPopup("ID'si verilen kullanıcı " + (props.type == 'teacher' ? 'öğretmen' : 'veli') + " değil");
                 else {
                     setFormValues((old) => {
                         let newValues = { ...old };
@@ -61,23 +61,33 @@ export default function AddTeacherGuardian(props) {
         });
     }
 
-    function addButtonHandle(){
+    function addButtonHandle() {
         setDisabled(true);
         backendFetchPOST('/createRelationRequest', {
             user_id: formValues.id,
             nickname: formValues.nickname,
             personalNote: formValues.personalNote
         }, async (response) => {
-            if(response.status == 200){
+            if (response.status == 200) {
                 let addedRequest = await response.json();
                 props.setSentRequests((old) => {
-                   let newArr = [...old];
-                   newArr.push(addedRequest); 
-                   return newArr;
+                    let newArr = [...old];
+                    newArr.push(addedRequest);
+                    return newArr;
                 });
                 showPopup("İstek Gönderildi");
             } else {
-                showPopup("Daha önce istek gönderildi");
+                let errMessage = await response.json();
+                
+                switch (errMessage.msg) {
+                    case 'duplicate':
+                        showPopup("Daha önce istek gönderildi");
+                        break;
+                    case 'in relation':
+                        showPopup("Halihazırda ilişkide");
+                    default:
+                        break;
+                }
             }
             setDisabled(false);
         });

@@ -107,8 +107,12 @@ BEGIN
     IF (fromUserTypeId != 2 OR toUserTypeId = 2) THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "checkRelationRequest error";
 	ELSEIF (SELECT Count(*) FROM Relation_Request WHERE from_user_id = NEW.from_user_id AND to_user_id = NEW.to_user_id) != 0 THEN
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "checkRelationRequest duplicate";
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "duplicate";
     END IF;
+    
+    IF (SELECT Count(*) FROM Relation WHERE (user1_id = NEW.from_user_id AND user2_id = NEW.to_user_id) OR (user1_id = NEW.to_user_id AND user2_id = NEW.from_user_id)) > 0 THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "in relation";
+	END IF;
 END//
 DELIMITER ;
 
@@ -116,8 +120,8 @@ CREATE TABLE Personal_Note (
 	personal_note_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     for_user_id INT NOT NULL,
-    nickname VARCHAR(40),
-    content varchar(255),
+    nickname VARCHAR(40) NOT NULL DEFAULT '',
+    content varchar(255) NOT NULL DEFAULT '',
     
     FOREIGN KEY (user_id) REFERENCES User (user_id),
     FOREIGN KEY (for_user_id) REFERENCES User (user_id),

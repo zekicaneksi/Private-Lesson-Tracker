@@ -1,0 +1,23 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    max-width: 80%;
+}
+
+.container select{
+    overflow: auto;
+}
+
+.container button{
+    width: 100%;
+}
+
+.container button:last-of-type{
+    margin-top: 1em;
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.4;
+}

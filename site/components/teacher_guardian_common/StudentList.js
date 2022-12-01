@@ -1,34 +1,18 @@
-import styles from './TeacherGuardianList.module.css';
+import styles from './StudentList.module.css';
+import PopupConfirmation from '../PopupConfirmation.js';
 import { useEffect, useState } from 'react';
 import { backendFetchGET, backendFetchPOST } from '../../utils/backendFetch';
-import PopupConfirmation from '../PopupConfirmation';
 import { useRouter } from 'next/router';
 
-export default function TeacherGuardianList(props) {
-
-    const types = [
-        { type: "teacher", route: '/getTeacherRelations', label: 'Öğretmen' },
-        { type: "guardian", route: '/getGuardianRelations', label: 'Veli' }
-    ];
-
-    let type;
-
-    types.forEach(element => {
-        if (element.type == props.type) type = element;
-    });
+export default function StudentList(props) {
 
     const router = useRouter();
 
     const [confirmationPopup, setConfirmationPopup] = useState({ msg: '', show: false, yesCallback: null, noCallback: null });
-    const [loading, setLoading] = useState(true);
-    const [selectValues, setSelectValues] = useState([]);
     const [formValues, setFormValues] = useState({
         searchInput: '',
         selectedRelationId: null,
-        selectValues: [],
-        nameInput: '',
         nicknameInput: '',
-        idInput: '',
         personalNoteInput: ''
     });
 
@@ -40,34 +24,23 @@ export default function TeacherGuardianList(props) {
         })
     }
 
-    function selectOnChangeHandle(event) {
-        setFormValues((old) => {
-            let selectedValue;
-
-            selectValues.forEach(elem => {
-                if (elem.relation_id == event.target.value) selectedValue = elem;
-            });
-
-            let newVal = { ...old };
-            newVal.selectedRelationId = event.target.value;
-            newVal.nameInput = selectedValue.name + ' ' + selectedValue.surname;
-            newVal.nicknameInput = selectedValue.nickname;
-            newVal.idInput = selectedValue.user_id;
-            newVal.personalNoteInput = selectedValue.content;
-            return newVal;
-        })
-    }
-
     function getSelectedRelation() {
         let toReturn;
-        formValues.selectValues.forEach(elem => {
-            if (elem.relation_id == formValues.selectedRelationId) toReturn = elem;
+        props.studentList.forEach(elem => {
+            if (elem.relation_id == props.selectedRelationId) toReturn = elem;
         });
         return toReturn;
     }
 
+    function sendMsgBtnHandle() {
+        router.push({
+            pathname: '/' + props.type + '/messages',
+            query: { user_id: getSelectedRelation().user_id }
+        }, '/' + props.type + '/messages');
+    }
+
     function editBtnHandle() {
-        setLoading(true);
+        props.setLoading(true);
         let personal_note_id = getSelectedRelation().personal_note_id;
 
         backendFetchPOST('/editPersonalNote', {
@@ -76,17 +49,17 @@ export default function TeacherGuardianList(props) {
             personal_note_id: personal_note_id
         }, async (response) => {
             if (response.status == 200) {
-                setFormValues((old) => {
-                    let newValues = { ...old };
-                    newValues.selectValues.forEach((elem, index) => {
-                        if (elem.relation_id == formValues.selectedRelationId) {
-                            newValues.selectValues[index].nickname = old.nicknameInput;
-                            newValues.selectValues[index].content = old.personalNoteInput;
+                props.setStudentList((old) => {
+                    let newValues = [...old];
+                    newValues.forEach((elem, index) => {
+                        if (elem.relation_id == props.selectedRelationId) {
+                            newValues[index].nickname = formValues.nicknameInput;
+                            newValues[index].content = formValues.personalNoteInput;
                         }
                     });
                     return newValues;
                 })
-                setLoading(false);
+                props.setLoading(false);
             }
         });
     }
@@ -94,13 +67,13 @@ export default function TeacherGuardianList(props) {
     function deleteRelationBtnHandle() {
 
         function deleteRelation() {
-            setLoading(true);
-            let selectedRelationId = getSelectedRelation().relation_id;
+            props.setLoading(true);
+            let selectedRelationId = props.selectedRelationId;
             backendFetchPOST('/deleteRelation', { relation_id: selectedRelationId }, async (response) => {
                 if (response.status == 200) {
-                    changeFormValue('selectedRelationId', null);
+                    props.setSelectedRelationId(null);
 
-                    setSelectValues((old) => {
+                    props.setStudentList((old) => {
                         let newArr = [...old];
                         let holdIndex;
                         newArr.forEach((elem, index) => {
@@ -109,7 +82,8 @@ export default function TeacherGuardianList(props) {
                         newArr.splice(holdIndex, 1);
                         return newArr;
                     });
-                    setLoading(false);
+
+                    props.setLoading(false);
                 }
             });
         }
@@ -122,25 +96,23 @@ export default function TeacherGuardianList(props) {
         });
     }
 
-    function sendMsgBtnHandle() {
-        router.push({
-            pathname: '/student/messages',
-            query: { user_id: getSelectedRelation().user_id }
-        }, '/student/messages');
-    }
-
     useEffect(() => {
-        backendFetchGET(type.route, async (response) => {
+        backendFetchGET('/getStudentRelations', async (response) => {
             if (response.status == 200) {
-                let values = await response.json();
-                setSelectValues(values);
-                changeFormValue('selectValues', values);
-                setLoading(false);
+                props.setStudentList(await response.json());
             }
         });
     }, []);
 
-    const selectElements = selectValues.map(elem => {
+    useEffect(() => {
+        let relation = getSelectedRelation();
+        if(relation != null){
+            changeFormValue('nicknameInput', relation.nickname);
+            changeFormValue('personalNoteInput', relation.content);
+        }
+    }, [props.selectedRelationId])
+
+    const selectElements = props.studentList.map(elem => {
         let fullName = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
         const pattern = new RegExp(formValues.searchInput, 'i');
         if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
@@ -148,33 +120,26 @@ export default function TeacherGuardianList(props) {
                 <option key={elem.relation_id} value={elem.relation_id}>{fullName}</option>
             );
         }
-    })
+    });
 
     return (
         <>
             <PopupConfirmation info={confirmationPopup} setInfo={setConfirmationPopup} />
-            <div className={`fieldContainer ${styles.container} ${loading ? styles.disabled : ''}`}>
-                <p>{type.label} Listesi</p>
-                <input placeholder='Ara...' onChange={(event) => { changeFormValue('searchInput', event.target.value); changeFormValue('selectedRelationId', null) }}></input>
-                <select size={5} onChange={selectOnChangeHandle}>
+            <div className={`fieldContainer ${styles.container}`}>
+                <p>Öğrenci Listesi</p>
+                <input placeholder='Ara...' onChange={(event) => { changeFormValue('searchInput', event.target.value); props.setSelectedRelationId(null) }}></input>
+                <select size={5} onChange={(event) => { props.setSelectedRelationId(event.target.value) }}>
                     {selectElements}
                 </select>
-                <div className={`${styles.container} ${styles.maxWidth} ${formValues.selectedRelationId == null ? styles.disabled : ''} ${styles.alignItems}`}>
-                    <button onClick={sendMsgBtnHandle}>Mesaj Gönder</button>
+                <div className={`${styles.container} ${styles.maxWidth} ${props.selectedRelationId == null ? styles.disabled : ''} ${styles.alignItems}`}>
+                    <div className={styles.flexButtonContainer}>
+                        <button onClick={sendMsgBtnHandle}>Mesaj Gönder</button>
+                        {props.type == 'teacher' && <button onClick={sendMsgBtnHandle}>Velisine Mesaj Gönder</button>}
+                    </div>
                     <div className={styles.flexDiv}>
-                        <div className={styles.fieldPair}>
-                            <p>Ad:</p>
-                            <input readOnly={true} className={styles.readOnlyInput}
-                                value={formValues.nameInput}></input>
-                        </div>
                         <div className={styles.fieldPair}>
                             <p>Takma Ad:</p>
                             <input value={formValues.nicknameInput} onChange={(event) => { changeFormValue('nicknameInput', event.target.value) }}></input>
-                        </div>
-                        <div className={styles.fieldPair}>
-                            <p>ID:</p>
-                            <input readOnly={true} className={styles.readOnlyInput}
-                                value={formValues.idInput}></input>
                         </div>
                         <div className={styles.fieldPair}>
                             <p>Kişisel Not:</p>

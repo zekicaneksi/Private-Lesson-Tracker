@@ -1,11 +1,3 @@
-.fieldPair{
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 1em;
-    align-items: center;
-}
-
 .container{
     display: flex;
     flex-direction: column;
@@ -21,10 +13,28 @@
     width: 100%;
 }
 
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1em;
+    align-items: center;
+}
+
 .flexDiv{
     display: flex;
     flex-direction: column;
     gap: 1em;
+}
+
+.flexButtonContainer{
+    display: flex;
+    gap: 4%;
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.4;
 }
 
 .alignItems {
@@ -34,11 +44,6 @@
 .noteTextarea{
     resize:none;
     height: 5em;
-}
-
-.disabled{
-    pointer-events: none;
-    opacity: 0.4;
 }
 
 .readOnlyInput{

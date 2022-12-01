@@ -1,0 +1,23 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    max-width: 80%;
+}
+
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1em;
+    align-items: center;
+}
+
+.readOnlyInput{
+    color: #999;
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.4;
+}

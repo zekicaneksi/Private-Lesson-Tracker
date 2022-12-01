@@ -247,7 +247,11 @@ app.post('/createRelationRequest', async (req, res) => {
         res.status(200).send(JSON.stringify(inserted_request_sql[0]));
 
     } catch (error) {
-        res.status(400).send();
+        let toReturn = {
+            msg: ''
+        };
+        if(error.sqlState == 45000) toReturn.msg = error.sqlMessage;
+        res.status(400).send(JSON.stringify(toReturn));
     }
 });
 
@@ -255,6 +259,19 @@ app.get('/sentRelationRequests', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
             'SELECT relation_request_id, user_type_id, name, surname, nickname FROM Relation_Request INNER JOIN User ON to_user_id = user_id WHERE from_user_id = ?',
+            [req.session.user_id]);
+
+        return res.status(200).send(JSON.stringify(result));
+
+    } catch (error) {
+        return res.status(400).send();
+    }
+});
+
+app.get('/pendingRelationRequests', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'SELECT relation_request_id, user_type_id, name, surname FROM Relation_Request INNER JOIN User ON from_user_id = user_id WHERE to_user_id = ?',
             [req.session.user_id]);
 
         return res.status(200).send(JSON.stringify(result));
@@ -272,6 +289,54 @@ app.post('/cancelRelationRequest', async (req, res) => {
         );
 
         return res.status(200).send({ relation_request_id: req.body.relation_request_id });
+    } catch (error) {
+        return res.status(404).send();
+    }
+});
+
+app.post('/acceptRelationRequest', async (req,res) => {
+    try {
+
+        const [result_insert_note_student_sql] = await dbConnection.execute(
+            'INSERT INTO Personal_Note (user_id, for_user_id, nickname, content) SELECT from_user_id, to_user_id, nickname, personal_note FROM Relation_Request WHERE relation_request_id = ? AND to_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        const [result_insert_note_recepient_sql] = await dbConnection.execute(
+            'INSERT INTO Personal_Note (user_id, for_user_id) SELECT to_user_id, from_user_id FROM Relation_Request WHERE relation_request_id = ? AND to_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        const [result_insert_relation_sql] = await dbConnection.execute(
+            'INSERT INTO Relation (user1_id, user2_id) SELECT from_user_id, to_user_id FROM Relation_Request WHERE relation_request_id = ? AND to_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        const [result_delete_sql] = await dbConnection.execute(
+            'DELETE FROM Relation_Request WHERE relation_request_id = ? AND to_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        const [result_toreturn_sql] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content, school, grade_branch, birth_date FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE relation_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [result_insert_relation_sql.insertId, req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(result_toreturn_sql[0]));
+    } catch (error) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
+
+app.post('/rejectRelationRequest', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'DELETE FROM Relation_Request WHERE relation_request_id = ? AND to_user_id = ?',
+            [req.body.relation_request_id, req.session.user_id]
+        );
+
+        return res.status(200).send();
     } catch (error) {
         return res.status(404).send();
     }
@@ -295,6 +360,20 @@ app.get('/getGuardianRelations', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
             'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content FROM (SELECT relation_id, user_id, name, surname FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 3) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+        
+        return res.status(400).send();
+    }
+});
+
+app.get('/getStudentRelations', async (req, res) => {
+    try {
+        const [result] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content, school, grade_branch, birth_date FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
             [req.session.user_id, req.session.user_id, req.session.user_id]
         );
 
