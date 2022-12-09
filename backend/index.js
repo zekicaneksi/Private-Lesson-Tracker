@@ -7,6 +7,8 @@ import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
+import {DateTime} from 'luxon';
+import {convertTimeToMinutes} from './utils.js';
 
 // Setup dotenv (enviorement variables)
 const __filename = fileURLToPath(import.meta.url);
@@ -250,7 +252,7 @@ app.post('/createRelationRequest', async (req, res) => {
         let toReturn = {
             msg: ''
         };
-        if(error.sqlState == 45000) toReturn.msg = error.sqlMessage;
+        if (error.sqlState == 45000) toReturn.msg = error.sqlMessage;
         res.status(400).send(JSON.stringify(toReturn));
     }
 });
@@ -294,7 +296,7 @@ app.post('/cancelRelationRequest', async (req, res) => {
     }
 });
 
-app.post('/acceptRelationRequest', async (req,res) => {
+app.post('/acceptRelationRequest', async (req, res) => {
     try {
 
         const [result_insert_note_student_sql] = await dbConnection.execute(
@@ -351,7 +353,7 @@ app.get('/getTeacherRelations', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(result));
     } catch (error) {
-        
+
         return res.status(400).send();
     }
 });
@@ -365,7 +367,7 @@ app.get('/getGuardianRelations', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(result));
     } catch (error) {
-        
+
         return res.status(400).send();
     }
 });
@@ -379,12 +381,12 @@ app.get('/getStudentRelations', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(result));
     } catch (error) {
-        
+
         return res.status(400).send();
     }
 });
 
-app.post('/editPersonalNote', async (req,res) => {
+app.post('/editPersonalNote', async (req, res) => {
     try {
         const [result] = await dbConnection.execute(
             'UPDATE Personal_Note SET nickname = ?, content = ? WHERE user_id = ? AND personal_note_id = ?',
@@ -397,7 +399,7 @@ app.post('/editPersonalNote', async (req,res) => {
     }
 });
 
-app.post('/deleteRelation', async (req,res) => {
+app.post('/deleteRelation', async (req, res) => {
     try {
 
         // Delete personal notes
@@ -415,6 +417,117 @@ app.post('/deleteRelation', async (req,res) => {
         return res.status(200).send();
     } catch (error) {
         return res.status(400).send();
+    }
+});
+
+app.post('/createLesson', async (req, res) => {
+
+    try {
+
+        let validationFail = false;
+
+        // Check if user is a teacher
+        const [checkUserType_sql] = await dbConnection.execute(
+            'SELECT user_id FROM User WHERE user_id = ? AND user_type_id = 1',
+            [req.session.user_id]
+        );
+
+        if (checkUserType_sql.length < 0) return res.status(403).send();
+
+        // -- Student List validation
+
+        // check if the teacher and the student has a relation
+        if(req.body.studentList.length > 0){
+            const checkRelation = dbConnection.format("SELECT Count(*) as count FROM Relation WHERE (relation_id IN (?) AND (user1_id = ? OR user2_id = ?) AND (user1_id IN (?,?) AND user2_id IN (?,?)))",
+            [req.body.studentList.map(elem => elem.relation_id), req.session.user_id, req.session.user_id, req.session.user_id, req.body.studentList.map(elem => elem.user_id), req.session.user_id, req.body.studentList.map(elem => elem.user_id)]);
+            const [checkRelation_sql] = await dbConnection.execute(checkRelation);
+            if (checkRelation_sql[0].count != req.body.studentList.length) return res.status(403).send();
+        }
+
+        // -- Session data validation
+
+        // check if dates are of future and beginning time is smaller than the ending time
+        req.body.sessionList.forEach(elem => {
+            if (!DateTime.fromISO(elem.date).isValid) validationFail = true;
+            if ((new Date(elem.date)) <= (new Date())) validationFail = true;
+            if (BigInt(convertTimeToMinutes(elem.startTime)) > BigInt(convertTimeToMinutes(elem.endTime))) validationFail = true;
+        });
+        if(validationFail) return res.status(403).send();
+
+        // -- Payment data validation
+
+        // check if dates are of future and the amount is not below zero
+        req.body.paymentList.forEach(elem => {
+            if (!DateTime.fromISO(elem.date).isValid) validationFail = true;
+            if ((new Date(elem.date)) <= (new Date())) validationFail = true;
+            if (elem.amount <= 0) validationFail = true;
+        });
+        if(validationFail) return res.status(403).send();
+
+        // -- Insertions into tables
+
+        // Insert into Lesson table
+        const [insertLesson_sql] = await dbConnection.execute(
+            'INSERT INTO Lesson (name, teacher_id, ended) VALUES (?,?,false)',
+            [req.body.lessonName, req.session.user_id]
+        );
+
+        // Insert into Student_Lesson table
+        if(req.body.studentList.length > 0){
+            const insert_studentLesson = dbConnection.format(
+                'INSERT INTO Student_Lesson (student_id, lesson_id) VALUES ?',
+                [req.body.studentList.map(elem => [elem.user_id, insertLesson_sql.insertId])]
+            );
+            const [insert_studentLesson_sql] = await dbConnection.execute(insert_studentLesson);
+        }
+        
+        // Insert into Session table
+        if(req.body.sessionList.length > 0){
+            const insert_session = dbConnection.format(
+                'INSERT INTO Session (lesson_id, name, date, start_time, end_time) VALUES ?',
+                [req.body.sessionList.map(elem => [insertLesson_sql.insertId, elem.sessionName, DateTime.fromISO(elem.date).toFormat('yyyy-MM-dd'), elem.startTime, elem.endTime])]
+            );
+            const [insert_session_sql] = await dbConnection.execute(insert_session);
+        }
+
+        // Insert into Attendance table
+        if(req.body.sessionList.length > 0 && req.body.studentList.length > 0){
+            const [insertedSessionIds_sql] = await dbConnection.execute(
+                'SELECT session_id FROM Session WHERE lesson_id = ?',
+                [insertLesson_sql.insertId]
+            );
+
+            let InsertAttendanceList = [];
+            req.body.studentList.forEach(student => {
+                insertedSessionIds_sql.forEach(session_id => InsertAttendanceList.push([student.user_id, session_id.session_id, null]));
+            });
+    
+            const insert_attendance = dbConnection.format(
+                'INSERT INTO Attendance (student_id, session_id, existent) VALUES ?',
+                [InsertAttendanceList]
+            );
+            const [insert_attendance_sql] = await dbConnection.execute(insert_attendance);
+        }
+
+        // Insert into Payment table
+        if(req.body.paymentList.length > 0 && req.body.studentList.length > 0){
+            let InsertPaymentList = [];
+            req.body.studentList.forEach(student => {
+                req.body.paymentList.forEach(payment => InsertPaymentList.push([insertLesson_sql.insertId, payment.amount, student.user_id, DateTime.fromISO(payment.date).toFormat('yyyy-MM-dd'), false]));
+            });
+    
+            const insert_payment = dbConnection.format(
+                'INSERT INTO Payment (lesson_id, amount, student_id, due, paid) VALUES ?',
+                [InsertPaymentList]
+            );
+            const [insert_payment_sql] = await dbConnection.execute(insert_payment);
+        }
+
+
+        return res.status(200).send();
+
+    } catch (error) {
+        return res.status(403).send();
     }
 });
 

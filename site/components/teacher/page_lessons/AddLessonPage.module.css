@@ -1,0 +1,115 @@
+.container{
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+
+.container [type="number"] {
+    width: 4em;
+}
+
+.createLessonBtn {
+    flex: 0.5;
+    font-size: xx-large;
+}
+
+.lessonNameDiv{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1em;
+    align-items: center;
+}
+
+.templateWeekContainerDiv{
+    padding: 2%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.templateWeekSessionDiv{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.scheduleDivContainer {
+    margin-top: 1em;
+}
+
+.flexRow{
+    display: flex;
+    flex-direction: row;
+}
+
+.flexColumn{
+    display: flex;
+    flex-direction: column;
+}
+
+.formCss{
+    gap: 1em;
+    align-items: center;
+    padding: 0.2em;
+}
+
+.templateWeekFormContainer{
+    justify-content: space-between;
+}
+
+.templateWeekFormContainer button{
+    margin: auto;
+    padding: 1em;
+}
+
+.sessionScheduleContainer{
+    width: min-content;
+}
+
+.sessionScheduleContainer select{
+    width: 100%;
+    overflow: auto;
+}
+
+.sessionScheduleContainer select option{
+    white-space: break-spaces;
+}
+
+.sessionScheduleContainer button{
+    width: 5em;
+}
+
+.spaceEvenly{
+    justify-content: space-evenly;
+}
+
+.studentsContainer {
+    max-width: 60%;
+}
+
+.paymentScheduleContainer, .studentsContainer{
+    width: fit-content;
+    height: fit-content;
+}
+
+.paymentScheduleContainer select{
+    width: 100%;
+    overflow: auto;
+}
+
+.studentsContainer select{
+    width: 100%;
+    overflow: auto;
+}
+
+.paymentScheduleContainer, .sessionScheduleContainer, .studentsContainer {
+    padding: 1em;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}

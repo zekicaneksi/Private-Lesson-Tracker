@@ -1,0 +1,34 @@
+.container {
+    border: 0.1em solid;
+    display: flex;
+    flex-direction: row;
+    min-height: 6em;
+}
+
+.container div {
+    flex: 1;
+}
+
+.container>div:last-child {
+    border-right: 0;
+}
+
+.weekNameDiv {
+    border-bottom: 0.1em solid;
+    padding: 5%;
+}
+
+.weekNameDiv p {
+    text-align: center;
+}
+
+.weekDayDiv {
+    border-right: 0.1em solid;
+}
+
+.sessionsDiv {
+    display: flex;
+    flex-direction: column;
+    padding: 5%;
+    gap: 0.5em;
+}
