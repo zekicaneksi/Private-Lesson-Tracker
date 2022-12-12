@@ -41,6 +41,7 @@ Table Session {
   date date
   start_time time
   end_time time
+  attendance_registered boolean
   
   Indexes{
     (session_id) [pk]

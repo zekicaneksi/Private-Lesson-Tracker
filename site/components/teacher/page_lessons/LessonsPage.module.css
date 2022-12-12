@@ -1,0 +1,37 @@
+.pageContainer{
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    padding: 5%;   
+}
+
+
+.flex{
+    display: flex;
+}
+
+.flexRow {
+    flex-direction: row;
+}
+
+.flexColumn {
+    flex-direction: column;
+    gap: 0.3em;
+}
+
+.marginLeftAuto{
+    margin-left: auto;
+}
+
+.flexGap {
+    gap: 0.4em;
+}
+
+.flexJustifyCenter {
+    justify-content: center;
+}
+
+.endLessonBtn {
+    color: #c00202;
+    margin-top: 0.5em;
+}

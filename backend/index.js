@@ -7,8 +7,8 @@ import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
-import {DateTime} from 'luxon';
-import {convertTimeToMinutes} from './utils.js';
+import { DateTime } from 'luxon';
+import { convertTimeToMinutes } from './utils.js';
 
 // Setup dotenv (enviorement variables)
 const __filename = fileURLToPath(import.meta.url);
@@ -437,12 +437,19 @@ app.post('/createLesson', async (req, res) => {
         // -- Student List validation
 
         // check if the teacher and the student has a relation
-        if(req.body.studentList.length > 0){
+        if (req.body.studentList.length > 0) {
             const checkRelation = dbConnection.format("SELECT Count(*) as count FROM Relation WHERE (relation_id IN (?) AND (user1_id = ? OR user2_id = ?) AND (user1_id IN (?,?) AND user2_id IN (?,?)))",
-            [req.body.studentList.map(elem => elem.relation_id), req.session.user_id, req.session.user_id, req.session.user_id, req.body.studentList.map(elem => elem.user_id), req.session.user_id, req.body.studentList.map(elem => elem.user_id)]);
+                [req.body.studentList.map(elem => elem.relation_id), req.session.user_id, req.session.user_id, req.session.user_id, req.body.studentList.map(elem => elem.user_id), req.session.user_id, req.body.studentList.map(elem => elem.user_id)]);
             const [checkRelation_sql] = await dbConnection.execute(checkRelation);
             if (checkRelation_sql[0].count != req.body.studentList.length) return res.status(403).send();
         }
+
+        // check if student list has duplicate students
+        var valueArr = req.body.studentList.map(elem => elem.user_id);
+        var isDuplicate = valueArr.some(function (item, idx) {
+            return valueArr.indexOf(item) != idx
+        });
+        if (isDuplicate) return res.status(403).send();
 
         // -- Session data validation
 
@@ -452,7 +459,7 @@ app.post('/createLesson', async (req, res) => {
             if ((new Date(elem.date)) <= (new Date())) validationFail = true;
             if (BigInt(convertTimeToMinutes(elem.startTime)) > BigInt(convertTimeToMinutes(elem.endTime))) validationFail = true;
         });
-        if(validationFail) return res.status(403).send();
+        if (validationFail) return res.status(403).send();
 
         // -- Payment data validation
 
@@ -462,7 +469,7 @@ app.post('/createLesson', async (req, res) => {
             if ((new Date(elem.date)) <= (new Date())) validationFail = true;
             if (elem.amount <= 0) validationFail = true;
         });
-        if(validationFail) return res.status(403).send();
+        if (validationFail) return res.status(403).send();
 
         // -- Insertions into tables
 
@@ -473,16 +480,16 @@ app.post('/createLesson', async (req, res) => {
         );
 
         // Insert into Student_Lesson table
-        if(req.body.studentList.length > 0){
+        if (req.body.studentList.length > 0) {
             const insert_studentLesson = dbConnection.format(
                 'INSERT INTO Student_Lesson (student_id, lesson_id) VALUES ?',
                 [req.body.studentList.map(elem => [elem.user_id, insertLesson_sql.insertId])]
             );
             const [insert_studentLesson_sql] = await dbConnection.execute(insert_studentLesson);
         }
-        
+
         // Insert into Session table
-        if(req.body.sessionList.length > 0){
+        if (req.body.sessionList.length > 0) {
             const insert_session = dbConnection.format(
                 'INSERT INTO Session (lesson_id, name, date, start_time, end_time) VALUES ?',
                 [req.body.sessionList.map(elem => [insertLesson_sql.insertId, elem.sessionName, DateTime.fromISO(elem.date).toFormat('yyyy-MM-dd'), elem.startTime, elem.endTime])]
@@ -490,8 +497,9 @@ app.post('/createLesson', async (req, res) => {
             const [insert_session_sql] = await dbConnection.execute(insert_session);
         }
 
-        // Insert into Attendance table
-        if(req.body.sessionList.length > 0 && req.body.studentList.length > 0){
+        /* (not needed, but may be in the future)
+        // Insert into Attendance table 
+        if (req.body.sessionList.length > 0 && req.body.studentList.length > 0) {
             const [insertedSessionIds_sql] = await dbConnection.execute(
                 'SELECT session_id FROM Session WHERE lesson_id = ?',
                 [insertLesson_sql.insertId]
@@ -501,21 +509,21 @@ app.post('/createLesson', async (req, res) => {
             req.body.studentList.forEach(student => {
                 insertedSessionIds_sql.forEach(session_id => InsertAttendanceList.push([student.user_id, session_id.session_id, null]));
             });
-    
+
             const insert_attendance = dbConnection.format(
                 'INSERT INTO Attendance (student_id, session_id, existent) VALUES ?',
                 [InsertAttendanceList]
             );
             const [insert_attendance_sql] = await dbConnection.execute(insert_attendance);
-        }
+        }*/
 
         // Insert into Payment table
-        if(req.body.paymentList.length > 0 && req.body.studentList.length > 0){
+        if (req.body.paymentList.length > 0 && req.body.studentList.length > 0) {
             let InsertPaymentList = [];
             req.body.studentList.forEach(student => {
                 req.body.paymentList.forEach(payment => InsertPaymentList.push([insertLesson_sql.insertId, payment.amount, student.user_id, DateTime.fromISO(payment.date).toFormat('yyyy-MM-dd'), false]));
             });
-    
+
             const insert_payment = dbConnection.format(
                 'INSERT INTO Payment (lesson_id, amount, student_id, due, paid) VALUES ?',
                 [InsertPaymentList]
@@ -526,6 +534,158 @@ app.post('/createLesson', async (req, res) => {
 
         return res.status(200).send();
 
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getTeacherLessons', async (req, res) => {
+    try {
+        const [teacherLessons_sql] = await dbConnection.execute(
+            'SELECT * FROM Lesson WHERE teacher_id = ?',
+            [req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(teacherLessons_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getTeacherLessonInfoById', async (req, res) => {
+    try {
+        const [sessionList_sql] = await dbConnection.execute(
+            'SELECT session_id, name, date, start_time, end_time FROM (SELECT lesson_id FROM Lesson WHERE teacher_id = ? AND lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id',
+            [req.session.user_id, req.query.lessonId]
+        );
+
+        const [studentList_sql] = await dbConnection.execute(
+            'SELECT student_lesson_id, student_id, name, surname, nickname FROM (SELECT student_lesson_id, student_id, name, surname FROM (SELECT student_lesson_id, student_id FROM (SELECT * FROM Lesson WHERE teacher_id = ? AND lesson_id = ?) as Lesson INNER JOIN Student_Lesson ON Lesson.lesson_id = Student_Lesson.lesson_id) as Abc INNER JOIN User ON abc.student_id = User.user_id) AS Def INNER JOIN Personal_Note ON (Personal_Note.for_user_id = Def.student_id AND Personal_Note.user_id = ?)',
+            [req.session.user_id, req.query.lessonId, req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify({
+            sessionList: sessionList_sql,
+            studentList: studentList_sql
+        }));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/removeSession', async (req, res) => {
+    try {
+        const [removeSession_sql] = await dbConnection.execute(
+            'DELETE FROM Session WHERE session_id = (SELECT session_id FROM (SELECT session_id FROM Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE teacher_id = ? AND date > (SELECT CURDATE()) AND session_id = ?) AS abc)',
+            [req.session.user_id, req.body.sessionId]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/addSession', async (req, res) => {
+
+    try {
+        // check if the request maker has the lesson
+        const [checkLesson_sql] = await dbConnection.execute(
+            'SELECT Count(*) as count FROM Lesson WHERE teacher_id = ? AND lesson_id = ?',
+            [req.session.user_id, req.body.lessonId]
+        );
+        if (checkLesson_sql[0].count == 0) return res.status(403).send();
+
+        // check if dates are of future and beginning time is smaller than the ending time
+        let validationFail = false;
+        if (!DateTime.fromISO(req.body.date).isValid) validationFail = true;
+        if ((new Date(req.body.date)) <= (new Date())) validationFail = true;
+        if (BigInt(convertTimeToMinutes(req.body.startTime)) > BigInt(convertTimeToMinutes(req.body.endTime))) validationFail = true;
+        if (validationFail) return res.status(403).send();
+
+        // Insert the session
+        const [insertSession_sql] = await dbConnection.execute(
+            'INSERT INTO Session (lesson_id, name, date, start_time, end_time) VALUES (?,?,?,?,?)',
+            [req.body.lessonId, req.body.name, DateTime.fromISO(req.body.date).toFormat('yyyy-MM-dd'), req.body.startTime, req.body.endTime]
+        );
+
+        return res.status(200).send(JSON.stringify({ insertId: insertSession_sql.insertId }));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/removeStudentFromLesson', async (req, res) => {
+    try {
+        const [removeStudent_sql] = await dbConnection.execute(
+            'DELETE FROM Student_Lesson WHERE student_lesson_id = (SELECT student_lesson_id FROM (SELECT student_lesson_id FROM Lesson INNER JOIN Student_Lesson ON Lesson.lesson_id = Student_Lesson.lesson_id WHERE teacher_id = ? AND Lesson.lesson_id = ? AND student_id = ?) As Abc)',
+            [req.session.user_id, req.body.lessonId, req.body.studentId]
+        );
+
+        const [getPendingAssignments_sql] = await dbConnection.execute(
+            'SELECT assignment_id FROM Lesson INNER JOIN Assignment ON Lesson.lesson_id = Assignment.lesson_id WHERE teacher_id = ? AND Lesson.lesson_id = ? AND student_id = ? AND due > (SELECT CURDATE())',
+            [req.session.user_id, req.body.lessonId, req.body.studentId]
+        );
+
+        if(getPendingAssignments_sql.length > 0){
+            const deletePendingAssignments_sql = dbConnection.format(
+                'DELETE FROM Assignment WHERE assignment_id IN (?)',
+                [getPendingAssignments_sql.map(elem => elem.assignment_id)]
+            );
+            await dbConnection.execute(deletePendingAssignments_sql);
+        }
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/addStudentToLesson', async (req, res) => {
+    try {
+
+        // check if the request maker has the lesson, and the relation to the user
+        const [check_sql] = await dbConnection.execute(
+            'SELECT Count(*) as count FROM Lesson INNER JOIN Relation ON (user1_id IN (?,?) AND user2_id IN (?,?)) WHERE teacher_id = ? AND lesson_id = ?',
+            [req.session.user_id, req.body.studentId, req.session.user_id, req.body.studentId, req.session.user_id, req.body.lessonId]
+        );
+        if(check_sql[0].count != 1) return res.status(403).send();
+
+        // Add the student to the lesson
+        const [addStudent_sql] = await dbConnection.execute(
+            'INSERT INTO Student_Lesson (student_id, lesson_id) VALUES (?,?)',
+            [req.body.studentId, req.body.lessonId]
+        );
+        
+        return res.status(200).send({student_lesson_id: addStudent_sql.insertId});
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/endLesson', async (req,res) => {
+    try {
+        
+        // Make the lesson's ended column true
+        const [endLesson_sql] = await dbConnection.execute(
+            'UPDATE Lesson SET ended = 1 WHERE lesson_id = ? AND teacher_id = ?',
+            [req.body.lessonId, req.session.user_id]
+        );
+        if(endLesson_sql.changedRows != 1) return res.status(403).send();
+        
+        // Delete all future sessons
+        const [deleteSession_sql] = await dbConnection.execute(
+            'DELETE FROM Session WHERE lesson_id = ? AND date > (SELECT CURDATE())',
+            [req.body.lessonId]
+        );
+
+        // Delete  all future assignments
+        const [deleteAssignments_sql] = await dbConnection.execute(
+            'DELETE FROM Assignment WHERE lesson_id = ? AND due > (SELECT CURDATE())',
+            [req.body.lessonId]
+        );
+
+        return res.status(200).send();
     } catch (error) {
         return res.status(403).send();
     }

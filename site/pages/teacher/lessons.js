@@ -7,6 +7,7 @@ import styles from '../../styles/teacher/lessons.module.css';
 import AddLessonPage from '../../components/teacher/page_lessons/AddLessonPage.js';
 import EndedLessonsPage from '../../components/teacher/page_lessons/EndedLessonsPage.js';
 import LessonsPage from '../../components/teacher/page_lessons/LessonsPage.js';
+import SessionHistoryPage from '../../components/teacher/page_lessons/SessionHistoryPage.js';
 
 export default function Lessons(props) {
 
@@ -14,8 +15,12 @@ export default function Lessons(props) {
 
     function getPageComponent() {
         switch (navInfo) {
+            case "lessonsPage":
+                return <LessonsPage setNavInfo={setNavInfo}/>
+                break;
+
             case "addLessonPage":
-                return <AddLessonPage setNavInfo={setNavInfo}/>
+                return <AddLessonPage setNavInfo={setNavInfo} />
                 break;
 
             case "endedLessonsPage":
@@ -23,7 +28,7 @@ export default function Lessons(props) {
                 break;
 
             default:
-                return <LessonsPage />
+                return <SessionHistoryPage lessonId={navInfo}/>
                 break;
         }
     }
