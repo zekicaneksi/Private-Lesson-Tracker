@@ -279,8 +279,8 @@ function LessonBox(props) {
             <p>{props.lessonInfo.name}</p>
             <div className={`fieldContainer ${styles.flex} ${styles.flexColumn} globalFieldContainerPadding`}>
                 <p>Seanslar</p>
-                <button className={`${styles.marginLeftAuto} ${formValues.selectedSessionId == '' ? 'disabled' : ''}`}
-                    onClick={() => { props.setNavInfo(formValues.selectedSessionId) }}>Seans Geçmişi</button>
+                <button className={`${styles.marginLeftAuto}`}
+                    onClick={() => { props.setNavInfo({lesson_name: props.lessonInfo.name, lesson_id: props.lessonInfo.lesson_id}); }}>Seans Geçmişi</button>
                 <select size={5} onChange={(event) => { changeFormValue("selectedSessionId", event.target.value) }}>
                     {sessionElems}
                 </select>

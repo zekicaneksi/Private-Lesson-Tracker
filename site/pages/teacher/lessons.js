@@ -28,7 +28,7 @@ export default function Lessons(props) {
                 break;
 
             default:
-                return <SessionHistoryPage lessonId={navInfo}/>
+                return <SessionHistoryPage lessonInfo={navInfo}/>
                 break;
         }
     }

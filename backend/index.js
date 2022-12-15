@@ -627,7 +627,7 @@ app.post('/removeStudentFromLesson', async (req, res) => {
             [req.session.user_id, req.body.lessonId, req.body.studentId]
         );
 
-        if(getPendingAssignments_sql.length > 0){
+        if (getPendingAssignments_sql.length > 0) {
             const deletePendingAssignments_sql = dbConnection.format(
                 'DELETE FROM Assignment WHERE assignment_id IN (?)',
                 [getPendingAssignments_sql.map(elem => elem.assignment_id)]
@@ -649,30 +649,30 @@ app.post('/addStudentToLesson', async (req, res) => {
             'SELECT Count(*) as count FROM Lesson INNER JOIN Relation ON (user1_id IN (?,?) AND user2_id IN (?,?)) WHERE teacher_id = ? AND lesson_id = ?',
             [req.session.user_id, req.body.studentId, req.session.user_id, req.body.studentId, req.session.user_id, req.body.lessonId]
         );
-        if(check_sql[0].count != 1) return res.status(403).send();
+        if (check_sql[0].count != 1) return res.status(403).send();
 
         // Add the student to the lesson
         const [addStudent_sql] = await dbConnection.execute(
             'INSERT INTO Student_Lesson (student_id, lesson_id) VALUES (?,?)',
             [req.body.studentId, req.body.lessonId]
         );
-        
-        return res.status(200).send({student_lesson_id: addStudent_sql.insertId});
+
+        return res.status(200).send({ student_lesson_id: addStudent_sql.insertId });
     } catch (error) {
         return res.status(403).send();
     }
 });
 
-app.post('/endLesson', async (req,res) => {
+app.post('/endLesson', async (req, res) => {
     try {
-        
+
         // Make the lesson's ended column true
         const [endLesson_sql] = await dbConnection.execute(
             'UPDATE Lesson SET ended = 1 WHERE lesson_id = ? AND teacher_id = ?',
             [req.body.lessonId, req.session.user_id]
         );
-        if(endLesson_sql.changedRows != 1) return res.status(403).send();
-        
+        if (endLesson_sql.changedRows != 1) return res.status(403).send();
+
         // Delete all future sessons
         const [deleteSession_sql] = await dbConnection.execute(
             'DELETE FROM Session WHERE lesson_id = ? AND date > (SELECT CURDATE())',
@@ -684,6 +684,100 @@ app.post('/endLesson', async (req,res) => {
             'DELETE FROM Assignment WHERE lesson_id = ? AND due > (SELECT CURDATE())',
             [req.body.lessonId]
         );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getSessionHistoryById', async (req, res) => {
+    try {
+
+        let toReturn = {
+            sessionList: [],
+            userList: [],
+            studentsTakingTheLesson: []
+        };
+
+        // Get session list
+        const [sessionList_sql] = await dbConnection.execute(
+            'SELECT session_id, Session.name as session_name, date, start_time, end_time, lesson.name as lesson_name, attendance_registered FROM Session INNER JOIN Lesson ON Session.lesson_id = lesson.lesson_id WHERE teacher_id = ? AND Lesson.lesson_id = ?',
+            [req.session.user_id, req.query.lessonId]
+        );
+        toReturn.sessionList = sessionList_sql.map(elem => {
+            if (elem.attendance_registered == 1) elem.attendanceList = [];
+            return elem;
+        });
+
+        // Get attendance list
+        let sessionIds = [];
+        sessionList_sql.forEach(elem => { if (elem.attendance_registered == 1) sessionIds.push(elem.session_id) });
+        if (sessionIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        const [attendanceList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT * FROM Attendance WHERE session_id IN (?)',
+            [sessionIds]
+        ));
+
+        attendanceList_sql.forEach(elem => {
+            toReturn.sessionList[toReturn.sessionList.findIndex(sessionElem => sessionElem.session_id == elem.session_id)].attendanceList.push(elem);
+        });
+
+        // Get the users that taking the lesson
+        const [studentsTakingTheLesson_sql] = await dbConnection.execute(
+            'SELECT UserTable.user_id, name, surname, nickname FROM (SELECT user_id, name, surname FROM Student_Lesson INNER JOIN User ON Student_Lesson.student_id = User.user_id WHERE Student_Lesson.lesson_id = ?) As UserTable INNER JOIN Personal_Note ON UserTable.user_id = Personal_Note.for_user_id WHERE Personal_Note.user_id = ?',
+            [req.query.lessonId, req.session.user_id]
+        );
+        toReturn.studentsTakingTheLesson = [...studentsTakingTheLesson_sql];
+
+        // Get userList
+        let uniqueIds = [];
+        toReturn.sessionList.forEach(sessionElem => {
+            if (sessionElem.attendanceList == undefined) return;
+            sessionElem.attendanceList.forEach(attendanceListElem => {
+                if (uniqueIds.findIndex(uniqueIdElem => uniqueIdElem == attendanceListElem.student_id) == -1) uniqueIds.push(attendanceListElem.student_id);
+            })
+        });
+
+        if (uniqueIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        const [userList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT User.user_id, name, surname, nickname FROM User INNER JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id WHERE User.user_id IN (?) AND Personal_Note.user_id = ?',
+            [uniqueIds, req.session.user_id]
+        ));
+        toReturn.userList = [...userList_sql];
+        toReturn.studentsTakingTheLesson.forEach(studentTakingTheLesson => {
+            if (toReturn.userList.findIndex(elem => elem.user_id == studentTakingTheLesson.user_id) == -1) toReturn.userList.push(studentTakingTheLesson);
+        })
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/registerAttendance', async (req, res) => {
+    try {
+
+        // Check if teacher owns the lesson
+        const [checkLesson_sql] = await dbConnection.execute(
+            'SELECT Count(*) as count FROM Lesson WHERE teacher_id = ?',
+            [req.session.user_id]
+        );
+        if (checkLesson_sql[0].count == 0) return res.status(403).send();
+
+        // Update the session info
+        const [updateSessionInfo_sql] = await dbConnection.execute(
+            'UPDATE Session SET attendance_registered = true WHERE session_id = ? AND lesson_id = ?',
+            [req.body.session_id, req.body.lesson_id]
+        );
+
+        if (req.body.studentList.length != 0) {
+            // Insert into attendance table
+            const [insertAttendance_sql] = await dbConnection.execute(dbConnection.format(
+                'INSERT INTO Attendance (session_id, student_id, existent) VALUES ?',
+                [req.body.studentList.map(elem => [req.body.session_id, elem.user_id, elem.existent])]
+            ));
+        }
 
         return res.status(200).send();
     } catch (error) {

@@ -38,6 +38,7 @@ CREATE TABLE Session (
     date DATE NOT NULL,
     start_time time NOT NULL,
     end_time time NOT NULL,
+    attendance_registered BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (lesson_id) REFERENCES Lesson (lesson_id),
     CHECK (start_time <= end_time)

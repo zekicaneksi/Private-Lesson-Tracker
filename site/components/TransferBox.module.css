@@ -4,6 +4,10 @@
     gap: 0.5em;
 }
 
+.container p{
+    text-align: center;
+}
+
 .buttonsDiv{
     display: flex;
     flex-direction: column;
