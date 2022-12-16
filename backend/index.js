@@ -785,4 +785,84 @@ app.post('/registerAttendance', async (req, res) => {
     }
 });
 
+app.get('/getTeacherEndedLessons', async (req, res) => {
+    try {
+
+        let toReturn = {
+            lessonList: [],
+            uniqueUserInfo: []
+        }
+
+        // Get ended lessons
+        const [endedLessonList_sql] = await dbConnection.execute(
+            'SELECT lesson_id, name FROM Lesson WHERE teacher_id = ? AND ended = 1',
+            [req.session.user_id]
+        );
+
+        endedLessonList_sql.forEach(elem => {
+            let toPush = {
+                lesson_id: elem.lesson_id,
+                lesson_name: elem.name,
+                studentsTakingTheLesson : [],
+                sessionList: []
+            }
+            toReturn.lessonList.push(toPush);
+        })
+        if (toReturn.lessonList.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+
+        // Get session list
+        const [sessionList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT session_id, lesson_id, name, date, start_time, end_time FROM Session WHERE lesson_id IN (?)',
+            [toReturn.lessonList.map(elem => elem.lesson_id)]
+        ));
+        sessionList_sql.forEach(sessionElem => {
+            toReturn.lessonList[toReturn.lessonList.findIndex(elem => elem.lesson_id == sessionElem.lesson_id)].sessionList.push({...sessionElem, attendanceList: []});
+        });
+
+        // Get attendance list
+        const [attendanceList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT session_id, student_id, existent FROM Attendance WHERE session_id IN (?)',
+            [sessionList_sql.map(elem => elem.session_id)]
+        ));
+
+        attendanceList_sql.forEach(attendanceElem => {
+            let lessonIndex, sessionIndex;
+            lessonIndex = toReturn.lessonList.findIndex(lessonElem => {
+                sessionIndex = lessonElem.sessionList.findIndex(sessionElem => sessionElem.session_id == attendanceElem.session_id);
+                if(sessionIndex != -1) return true;
+                else return false;
+            });
+            toReturn.lessonList[lessonIndex].sessionList[sessionIndex].attendanceList.push(attendanceElem);
+        });
+
+        // Get students taking the lesson
+        const [studentsTakingTheLesson_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT student_id, lesson_id FROM Student_Lesson WHERE lesson_id IN (?)',
+            [toReturn.lessonList.map(elem => elem.lesson_id)]
+        ));
+        studentsTakingTheLesson_sql.forEach(elem => {
+            toReturn.lessonList[toReturn.lessonList.findIndex(elemLesson => elemLesson.lesson_id == elem.lesson_id)].studentsTakingTheLesson.push(elem.student_id);
+        });
+
+        // Get student information
+        let uniqueIdList = [];
+        studentsTakingTheLesson_sql.forEach(elem => uniqueIdList.push(elem.student_id));
+        attendanceList_sql.forEach(elem => {
+            if(uniqueIdList.findIndex(elem2 => elem2 == elem.student_id) != -1) uniqueIdList.push(elem.student_id);
+        });
+
+        const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+            [req.session.user_id, uniqueIdList]
+        ));
+
+        toReturn.uniqueUserInfo = [...studentInfo_sql];
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        console.log(error);
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
