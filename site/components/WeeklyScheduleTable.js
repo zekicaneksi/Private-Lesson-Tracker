@@ -16,7 +16,7 @@ export default function WeeklyScheduleTable(props){
 
         const sessionElems = sessionsArr.map((elem, index) => {
             let timeText = elem.startTime + ' - ' + elem.endTime;
-            return <p key={index}>{timeText}<br></br>{elem.sessionName}</p>
+            return <p key={index}>{timeText}<br></br>{elem.lessonName != undefined && elem.lessonName}{elem.lessonName != undefined && <br></br>}{elem.sessionName}</p>
         })
 
         return(

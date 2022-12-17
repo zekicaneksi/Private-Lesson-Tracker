@@ -32,3 +32,11 @@
     padding: 5%;
     gap: 0.5em;
 }
+
+.sessionsDiv p{
+    border-bottom: solid 0.1em;
+}
+
+.sessionsDiv p:last-of-type{
+    border-bottom: 0;
+}

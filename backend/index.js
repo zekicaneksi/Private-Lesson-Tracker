@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { json } from 'express';
 import cors from 'cors';
 import path from 'path';
 import mysql from 'mysql2/promise'
@@ -861,6 +861,19 @@ app.get('/getTeacherEndedLessons', async (req, res) => {
         return res.status(200).send(JSON.stringify(toReturn));
     } catch (error) {
         console.log(error);
+        return res.status(403).send();
+    }
+});
+
+app.get('/getTeacherSchedule', async (req,res) => {
+    try {
+        const [teacherSchedule_sql] = await dbConnection.execute(
+            'SELECT Lesson.name as lesson_name, Session.name as session_name, date, start_time, end_time FROM Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE teacher_id = ? AND date > (SELECT CURDATE()) ORDER BY date, start_time',
+            [req.session.user_id]
+        );
+        
+        return res.status(200).send(JSON.stringify(teacherSchedule_sql));
+    } catch (error) {
         return res.status(403).send();
     }
 });
