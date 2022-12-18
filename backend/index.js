@@ -1171,4 +1171,57 @@ app.post('/acceptPayment', async (req, res) => {
     }
 });
 
+app.get('/getTeacherNotes', async (req, res) => {
+    try {
+        
+        const [getTeacherNotes_sql] = await dbConnection.execute(
+            'SELECT * FROM Note WHERE teacher_id = ? ORDER BY creation_date',
+            [req.session.user_id]
+        );
+
+        return res.status(200).send(JSON.stringify(getTeacherNotes_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/createNote', async (req, res) => {
+    try {
+        const [createNote_sql] = await dbConnection.execute(
+            'INSERT INTO Note (teacher_id, student_id, creation_date, header, content) VALUES (?,?,CURDATE(),?,?)',
+            [req.session.user_id, req.body.student_id, req.body.header, req.body.content]
+        )
+
+        return res.status(200).send(JSON.stringify({insertId: createNote_sql.insertId}));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/editNote', async (req, res) => {
+    try {
+        const [editNote_sql] = await dbConnection.execute(
+            'UPDATE Note SET header=?, content=? WHERE teacher_id = ? AND note_id = ?',
+            [req.body.header, req.body.content, req.session.user_id, req.body.note_id]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/deleteNote', async (req, res) => {
+    try {
+        const [deleteNote_sql] = await dbConnection.execute(
+            'DELETE FROM Note WHERE teacher_id = ? AND note_id = ?',
+            [req.session.user_id, req.body.note_id]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
