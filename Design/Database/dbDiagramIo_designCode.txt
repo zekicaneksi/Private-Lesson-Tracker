@@ -148,7 +148,6 @@ Table Notification {
 
 Table Assignment {
   assignment_id int
-  student_id int [ref: > User.user_id]
   lesson_id int [ref: > Lesson.lesson_id]
   header varchar
   content varchar
@@ -157,6 +156,17 @@ Table Assignment {
   
   Indexes {
     (assignment_id) [pk]
+  }
+}
+
+Table Assignment_Student {
+  assignment_student_id int
+  assignment_id int [ref: > Assignment.assignment_id]
+  student_id int [ref: > User.user_id]
+  done boolean
+  
+  Indexes {
+    (assignment_student_id) [pk]
   }
 }
 

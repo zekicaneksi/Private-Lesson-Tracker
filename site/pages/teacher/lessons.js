@@ -39,7 +39,7 @@ export default function Lessons(props) {
                 {navInfo == "lessonsPage" ? (
                     <>
                         <button onClick={() => setNavInfo("endedLessonsPage")}>Sonlanmış Dersler</button>
-                        <button onClick={() => setNavInfo("addLessonPage")}>Ders Ekle</button>
+                        <button onClick={() => setNavInfo("addLessonPage")}>Ders Oluştur</button>
                     </>
                 ) : (
                     <>

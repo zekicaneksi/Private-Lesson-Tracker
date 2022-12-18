@@ -1,0 +1,47 @@
+.pageContainer {
+    padding: 2%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.sideContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3em;
+    width: 50%;
+}
+
+.sideContainer select{
+    min-width: 10em;
+}
+
+.flex {
+    display: flex;
+}
+
+.flexRow {
+    flex-direction: row;
+}
+
+.flexColumn {
+    flex-direction: column;
+}
+
+.flexGap {
+    gap: 0.5em;
+}
+
+.flexJustifyCenter{
+    justify-content: center;
+}
+
+.textarea {
+    resize: none;
+    height: 5em;
+}
+
+.marginRightAuto{
+    margin-right: auto;
+}

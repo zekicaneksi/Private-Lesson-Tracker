@@ -1,0 +1,44 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.container select{
+    min-width: 10em;
+}
+
+.container h3{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.flex{
+    display:flex;
+}
+
+.flexRow {
+    flex-direction: row;
+}
+
+.flexColumn {
+    flex-direction: column;
+}
+
+.flexGap {
+    gap: 0.2em;
+}
+
+.flexBigGap {
+    gap: 1.6em;
+}
+
+.textarea {
+    resize: none;
+    height: 5em;
+}
+
+.textAlignCenter{
+    text-align: center;
+}

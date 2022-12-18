@@ -158,13 +158,21 @@ CREATE TABLE Notification (
 CREATE TABLE Assignment (
 	assignment_id INT PRIMARY KEY AUTO_INCREMENT,
     lesson_id INT NOT NULL,
-    student_id INT NOT NULL,
     header VARCHAR(80) NOT NULL,
     content VARCHAR(255) NOT NULL,
     due DATETIME NOT NULL,
     done BOOLEAN,
     
-    FOREIGN KEY (lesson_id) REFERENCES Lesson (lesson_id),
+    FOREIGN KEY (lesson_id) REFERENCES Lesson (lesson_id)
+);
+
+CREATE TABLE Assignment_Student (
+	assignment_student_id INT PRIMARY KEY AUTO_INCREMENT,
+    assignment_id INT NOT NULL,
+    student_id INT NOT NULL,
+    done BOOLEAN,
+    
+    FOREIGN KEY (assignment_id) REFERENCES Assignment (assignment_id),
     FOREIGN KEY (student_id) REFERENCES User (user_id)
 );
 
