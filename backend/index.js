@@ -1032,4 +1032,143 @@ app.get('/getTeacherPastAssignments', async (req, res) => {
     }
 });
 
+app.get('/getTeacherPayments', async (req, res) => {
+    try {
+        const [getTeacherPayments_sql] = await dbConnection.execute(
+            'SELECT payment_id, Lesson.lesson_id, student_id, Lesson.name as lesson_name, amount, due, paid FROM Lesson INNER JOIN Payment ON Lesson.lesson_id = Payment.lesson_id WHERE teacher_id = ? ORDER BY due',
+            [req.session.user_id]
+        );
+
+        let toReturn={
+            paymentList: getTeacherPayments_sql,
+            lessonList: [],
+            userList: []
+        };
+
+        let uniqueUserIds = [];
+        toReturn.paymentList.forEach(payment => {
+            if (toReturn.lessonList.findIndex(lesson => lesson.lesson_id == payment.lesson_id) == -1) toReturn.lessonList.push({
+                lesson_id: payment.lesson_id,
+                lesson_name: payment.lesson_name
+            });
+
+            if (uniqueUserIds.findIndex(elem => elem==payment.student_id) == -1) uniqueUserIds.push(payment.student_id);
+        })
+
+        if(uniqueUserIds.length > 0){
+            const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
+                "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+                [req.session.user_id, uniqueUserIds]
+            ));
+    
+            toReturn.userList = [...studentInfo_sql];
+        }
+
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getTeacherStudentLessons', async (req, res) => {
+    try {
+        const [getTeacherStudentLessons_sql] = await dbConnection.execute(
+            'SELECT Lesson.lesson_id, name, student_lesson_id, student_id FROM Lesson LEFT OUTER JOIN Student_Lesson ON Lesson.lesson_id = Student_Lesson.lesson_id WHERE teacher_id = ?',
+            [req.session.user_id]
+        );
+
+        let toReturn = {
+            lessonList: [],
+            userList: []
+        }
+
+        // Extract lessons
+        getTeacherStudentLessons_sql.forEach(elem => {
+            if (toReturn.lessonList.findIndex(lesson => lesson.lesson_id == elem.lesson_id) == -1) toReturn.lessonList.push({
+                lesson_id: elem.lesson_id,
+                lesson_name: elem.name,
+                studentList: []
+            })
+        });
+
+        // Extract students
+        getTeacherStudentLessons_sql.forEach(elem => {
+            if (elem.student_lesson_id == null) return;
+            let lessonIndex = toReturn.lessonList.findIndex(lesson => lesson.lesson_id == elem.lesson_id);
+            toReturn.lessonList[lessonIndex].studentList.push(elem.student_id);
+        });
+
+        // Get users' info
+        let uniqueIdList = [];
+        toReturn.lessonList.forEach(lesson => {
+            lesson.studentList.forEach(studentId => {
+                if (uniqueIdList.findIndex(elem => elem == studentId) == -1) uniqueIdList.push(studentId);
+            })
+        });
+
+        if(uniqueIdList.length > 0){
+            const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
+                "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+                [req.session.user_id, uniqueIdList]
+            ));
+    
+            toReturn.userList = [...studentInfo_sql];
+        }
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/addPayment', async (req, res) => {
+    try {
+
+        // Validate values
+        if (!DateTime.fromISO(req.body.due).isValid) return res.status(403).send();
+        if ((new Date(req.body.due)) <= (new Date())) return res.status(403).send();
+
+        if(req.body.amount <= 0) return res.status(403).send();
+
+        // Check if teacher owns the lesson
+        const [checkLesson_sql] = await dbConnection.execute(
+            'SELECT Count(*) as count FROM Lesson WHERE teacher_id = ? AND lesson_id = ?',
+            [req.session.user_id, req.body.lesson_id]
+        );
+        if (checkLesson_sql[0].count == 0) return res.status(403).send();
+
+        const [insertPayment_sql] = await dbConnection.execute(
+            'INSERT INTO Payment (lesson_id, student_id, amount, due, paid) VALUES (?,?,?,?,false)',
+            [req.body.lesson_id, req.body.student_id, req.body.amount, req.body.due]
+        );
+
+        return res.status(200).send();
+        
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/acceptPayment', async (req, res) => {
+    try {
+
+        // Check if the teacher owns the lesson and payment
+        const [checkValidity_sql] = await dbConnection.execute(
+            'SELECT Count(*) as count FROM Lesson INNER JOIN Payment ON Lesson.lesson_id = Payment.lesson_id WHERE teacher_id = ? AND payment_id = ?',
+            [req.session.user_id, req.body.payment_id]
+        );
+        if (checkValidity_sql[0].count == 0) return res.status(403).send();
+
+        const [updatePayment_sql] = await dbConnection.execute(
+            'UPDATE Payment SET paid = true WHERE payment_id = ?',
+            [req.body.payment_id]
+        );
+
+        return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);

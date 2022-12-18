@@ -1,0 +1,40 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    margin-top: 5%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    justify-content: center;
+    align-items: center;
+}
+
+.container button{
+    white-space: nowrap;
+}
+
+.container select{
+    min-width: 10em;
+}
+
+.fieldPair{
+    display: flex;
+    flex-direction: row;
+    gap: 0.8em;
+}
+
+.flex{
+    display: flex;
+}
+
+.flexGap{
+    gap: 1em;
+}
+
+.flexColumn{
+    flex-direction: column;
+}
+
+.minWidthFull{
+    min-width: 100% !important;
+}
