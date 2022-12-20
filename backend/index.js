@@ -1287,4 +1287,17 @@ app.get('/getTeacherUpcomingAttendance', async (req, res) => {
     }
 });
 
+app.get('/getStudentSchedule', async (req, res) => {
+    try {
+        const [getSchedule_sql] = await dbConnection.execute(
+            'SELECT lesson_name, Session.name as session_name, date, start_time, end_time, session_id FROM (SELECT Lesson.lesson_id, Lesson.name as lesson_name FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ?) AS Abc INNER JOIN Session ON Abc.lesson_id = Session.lesson_id AND date > (SELECT CURDATE()) ORDER BY date, start_time',
+            [req.session.user_id]
+        )
+        
+        return res.status(200).send(JSON.stringify(getSchedule_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);

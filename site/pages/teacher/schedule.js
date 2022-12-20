@@ -63,7 +63,7 @@ export default function Schedule() {
 
     return (
         <div className={`${styles.container}`}>
-            {scheduleTableElems}
+            {scheduleTableElems.length > 0 ? scheduleTableElems : <p>Ders bulunamamıştır</p>}
         </div>
     )
 }
