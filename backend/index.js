@@ -835,7 +835,7 @@ app.get('/getTeacherEndedLessons', async (req, res) => {
 app.get('/getTeacherSchedule', async (req, res) => {
     try {
         const [teacherSchedule_sql] = await dbConnection.execute(
-            'SELECT Lesson.name as lesson_name, Session.name as session_name, date, start_time, end_time FROM Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE teacher_id = ? AND date > (SELECT CURDATE()) ORDER BY date, start_time',
+            'SELECT Lesson.name as lesson_name, Session.name as session_name, date, start_time, end_time, session_id FROM Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE teacher_id = ? AND date > (SELECT CURDATE()) ORDER BY date, start_time',
             [req.session.user_id]
         );
 
@@ -909,7 +909,7 @@ app.get('/getTeacherAssignments', async (req, res) => {
 
 app.post('/createAssignment', async (req, res) => {
     try {
-        
+
         // Check if teacher owns the lesson
         const [checkLesson_sql] = await dbConnection.execute(
             'SELECT Count(*) as count FROM Lesson WHERE teacher_id = ? AND lesson_id = ?',
@@ -927,7 +927,7 @@ app.post('/createAssignment', async (req, res) => {
             [req.body.lesson_id, req.body.header, req.body.content, req.body.due]
         );
 
-        return res.status(200).send(JSON.stringify({insertId: insertAssignment_sql.insertId}));
+        return res.status(200).send(JSON.stringify({ insertId: insertAssignment_sql.insertId }));
     } catch (error) {
         return res.status(403).send();
     }
@@ -942,7 +942,7 @@ app.post('/registerAssignment', async (req, res) => {
         )
 
         // Insert into Assignment_Student
-        if(req.body.studentList.length == 0) return res.status(200).send();
+        if (req.body.studentList.length == 0) return res.status(200).send();
         const [insert_sql] = await dbConnection.execute(dbConnection.format(
             'INSERT INTO Assignment_Student (assignment_id, student_id, done) VALUES ?',
             [req.body.studentList.map(elem => {
@@ -978,7 +978,7 @@ app.get('/getTeacherPastAssignments', async (req, res) => {
             elem.assignmentList = [];
             toReturn.lessonsInfo.push(elem);
         });
-        
+
         // Fill lessons' assignments
         assignmentList_sql.forEach(elem => {
             let lessonIndex = toReturn.lessonsInfo.findIndex(lesson => lesson.lesson_id == elem.lesson_id);
@@ -991,7 +991,7 @@ app.get('/getTeacherPastAssignments', async (req, res) => {
                     studentsThatDidDo: [],
                     studentsThatDidNotDo: []
                 })
-            }  
+            }
         })
 
         // Fill assignments' students
@@ -1005,24 +1005,24 @@ app.get('/getTeacherPastAssignments', async (req, res) => {
 
         // Get student information
         let uniqueIdList = [];
-        
+
         toReturn.lessonsInfo.forEach(lesson => {
             lesson.assignmentList.forEach(assignment => {
                 assignment.studentsThatDidDo.forEach(elem => {
-                    if (uniqueIdList.findIndex(elem2 => elem==elem2) == -1) uniqueIdList.push(elem);
+                    if (uniqueIdList.findIndex(elem2 => elem == elem2) == -1) uniqueIdList.push(elem);
                 })
                 assignment.studentsThatDidNotDo.forEach(elem => {
-                    if (uniqueIdList.findIndex(elem2 => elem==elem2) == -1) uniqueIdList.push(elem);
+                    if (uniqueIdList.findIndex(elem2 => elem == elem2) == -1) uniqueIdList.push(elem);
                 })
             })
         })
 
-        if(uniqueIdList.length > 0){
+        if (uniqueIdList.length > 0) {
             const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
                 "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
                 [req.session.user_id, uniqueIdList]
             ));
-    
+
             toReturn.userList = [...studentInfo_sql];
         }
 
@@ -1039,7 +1039,7 @@ app.get('/getTeacherPayments', async (req, res) => {
             [req.session.user_id]
         );
 
-        let toReturn={
+        let toReturn = {
             paymentList: getTeacherPayments_sql,
             lessonList: [],
             userList: []
@@ -1052,15 +1052,15 @@ app.get('/getTeacherPayments', async (req, res) => {
                 lesson_name: payment.lesson_name
             });
 
-            if (uniqueUserIds.findIndex(elem => elem==payment.student_id) == -1) uniqueUserIds.push(payment.student_id);
+            if (uniqueUserIds.findIndex(elem => elem == payment.student_id) == -1) uniqueUserIds.push(payment.student_id);
         })
 
-        if(uniqueUserIds.length > 0){
+        if (uniqueUserIds.length > 0) {
             const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
                 "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
                 [req.session.user_id, uniqueUserIds]
             ));
-    
+
             toReturn.userList = [...studentInfo_sql];
         }
 
@@ -1107,12 +1107,12 @@ app.get('/getTeacherStudentLessons', async (req, res) => {
             })
         });
 
-        if(uniqueIdList.length > 0){
+        if (uniqueIdList.length > 0) {
             const [studentInfo_sql] = await dbConnection.execute(dbConnection.format(
                 "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
                 [req.session.user_id, uniqueIdList]
             ));
-    
+
             toReturn.userList = [...studentInfo_sql];
         }
 
@@ -1129,7 +1129,7 @@ app.post('/addPayment', async (req, res) => {
         if (!DateTime.fromISO(req.body.due).isValid) return res.status(403).send();
         if ((new Date(req.body.due)) <= (new Date())) return res.status(403).send();
 
-        if(req.body.amount <= 0) return res.status(403).send();
+        if (req.body.amount <= 0) return res.status(403).send();
 
         // Check if teacher owns the lesson
         const [checkLesson_sql] = await dbConnection.execute(
@@ -1144,7 +1144,7 @@ app.post('/addPayment', async (req, res) => {
         );
 
         return res.status(200).send();
-        
+
     } catch (error) {
         return res.status(403).send();
     }
@@ -1173,7 +1173,7 @@ app.post('/acceptPayment', async (req, res) => {
 
 app.get('/getTeacherNotes', async (req, res) => {
     try {
-        
+
         const [getTeacherNotes_sql] = await dbConnection.execute(
             'SELECT * FROM Note WHERE teacher_id = ? ORDER BY creation_date',
             [req.session.user_id]
@@ -1192,7 +1192,7 @@ app.post('/createNote', async (req, res) => {
             [req.session.user_id, req.body.student_id, req.body.header, req.body.content]
         )
 
-        return res.status(200).send(JSON.stringify({insertId: createNote_sql.insertId}));
+        return res.status(200).send(JSON.stringify({ insertId: createNote_sql.insertId }));
     } catch (error) {
         return res.status(403).send();
     }
@@ -1219,6 +1219,69 @@ app.post('/deleteNote', async (req, res) => {
         );
 
         return res.status(200).send();
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getTeacherUpcomingAttendance', async (req, res) => {
+    try {
+
+        let toReturn = {
+            sessionList: [],
+            lessonList: [],
+            userList: []
+        }
+
+        // Get the sessions to enter attendance to
+        const [getSessions_sql] = await dbConnection.execute(
+            'SELECT session_id, Lesson.lesson_id, Lesson.name as lesson_name, Session.name as session_name, date, start_time, end_time FROM Lesson INNER JOIN Session ON Session.lesson_id = Lesson.lesson_id WHERE teacher_id = ? AND attendance_registered = false AND Date < (DATE(now())) ORDER BY date',
+            [req.session.user_id]
+        );
+
+        toReturn.sessionList = [...getSessions_sql];
+
+        toReturn.sessionList.forEach(session => {
+            if (toReturn.lessonList.findIndex(lesson => lesson.lesson_id == session.lesson_id) == -1)
+                toReturn.lessonList.push({
+                    lesson_id: session.lesson_id,
+                    lesson_name: session.lesson_name,
+                    studentsTakingTheLesson: []
+                });
+        });
+
+        if (getSessions_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+
+        // Get the student ids that take the lessons that sessions have
+        const [getStudentIds_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT * FROM Student_Lesson WHERE lesson_id IN (?)',
+            [toReturn.lessonList.map(lesson => lesson.lesson_id)]
+        ));
+
+        getStudentIds_sql.forEach(studentLesson => {
+            let lessonIndex = toReturn.lessonList.findIndex(lesson => lesson.lesson_id == studentLesson.lesson_id);
+            toReturn.lessonList[lessonIndex].studentsTakingTheLesson.push(studentLesson.student_id);
+        });
+
+        if (getStudentIds_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+
+        // Get the student info
+        let uniqueUserIds = []
+        toReturn.lessonList.forEach(lesson => {
+            lesson.studentsTakingTheLesson.forEach(id => {
+                if(uniqueUserIds.findIndex(elem => elem==id) == -1) uniqueUserIds.push(id);
+            })
+        })
+
+        const [getStudentInfo_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT User.user_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+            [req.session.user_id, uniqueUserIds]
+        ))
+
+        toReturn.userList = [...getStudentInfo_sql];
+
+        return res.status(200).send(JSON.stringify(toReturn));
+
     } catch (error) {
         return res.status(403).send();
     }

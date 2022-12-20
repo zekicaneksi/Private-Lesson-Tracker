@@ -6,6 +6,7 @@
 
 .container p{
     text-align: center;
+    white-space: nowrap;
 }
 
 .buttonsDiv{

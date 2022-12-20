@@ -29,7 +29,7 @@ export default function TransferBox(props) {
     });
 
     return (
-        <div className={styles.container}>
+        <div className={`${styles.container} ${(rightSideElems.length == 0 && leftSideElems.length == 0) ? 'disabled' : ''}`}>
             <div className={`${styles.flexColumn} ${styles.flexGap}`}>
                 <p>{props.leftSideLabel}</p>
                 <select size={5} onChange={(event) => { setSelectedOptionIndex(event.target.value) }}>

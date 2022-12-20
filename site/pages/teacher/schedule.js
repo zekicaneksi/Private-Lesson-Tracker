@@ -22,6 +22,7 @@ export default function Schedule() {
                     let arrDate = new Date();
                     let dateDiff = date.getDay() - 1;
                     arrDate.setDate(date.getDate() - (dateDiff > 0 ? dateDiff : (dateDiff * -6)));
+                    arrDate.setHours(0,0,0,0);
                     let index = arr.findIndex(arrElem => arrElem.weekDate.getTime() == arrDate.getTime());
                     if (index == -1) index = arr.push({
                         weekDate: arrDate, days: {
@@ -53,7 +54,7 @@ export default function Schedule() {
     const scheduleTableElems = scheduleWeekArr.map(elem => {
         elem.weekDate = new Date(elem.weekDate)
         return (
-            <div key={dateToString(elem.weekDate)} className={`"fieldContainer" ${styles.scheduleContainer}`}>
+            <div key={dateToString(elem.weekDate)} className={`fieldContainer ${styles.scheduleContainer}`}>
                 <p>{dateToString(elem.weekDate)}</p>
                 <WeeklyScheduleTable content={elem.days} />
             </div>

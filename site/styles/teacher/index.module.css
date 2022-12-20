@@ -1,0 +1,33 @@
+.pageContainer{
+    display: flex;
+    flex-direction: column;
+}
+
+.fullWidth{
+    width: 100%;
+}
+
+.displayFlex{
+    display: flex;
+}
+
+.flexColumn{
+    flex-direction: column;
+}
+
+.flexGap{
+    gap: 1em;
+}
+
+.flexSmallGap{
+    gap: 0.2em;
+}
+
+.containSelect select, .containSelect option{
+    width: 100%;
+}
+
+.containSelect select{
+    overflow: auto;
+    flex: 1 1;
+}
