@@ -1354,4 +1354,51 @@ app.get('/getStudentEndedLessons', async (req, res) => {
     }
 });
 
+app.get('/getStudentAssignments', async (req, res) => {
+    try {
+
+        let toReturn={
+            activeAssignments: [],
+            pastAssignments: [],
+            lessonList: []
+        }
+        
+        const [getActiveAssignments_sql] = await dbConnection.execute(
+            'SELECT assignment_id, Assignment.lesson_id, header, content, due  FROM Student_Lesson INNER JOIN Assignment ON Student_Lesson.lesson_id = Assignment.lesson_id WHERE student_id = ? AND Assignment.done = false ORDER BY due',
+            [req.session.user_id]
+        );
+        
+        toReturn.activeAssignments = [...getActiveAssignments_sql];
+
+        const [getPastAssignments_sql] = await dbConnection.execute(
+            'SELECT Assignment.assignment_id, Assignment.lesson_id, header, content, due, a_s.done FROM Assignment_Student as a_s INNER JOIN Assignment ON a_s.assignment_id = Assignment.assignment_id WHERE student_id = ?  ORDER BY due desc',
+            [req.session.user_id]
+        );
+
+        toReturn.pastAssignments = [...getPastAssignments_sql];
+
+        let uniqueLessonIds = [];
+
+        getActiveAssignments_sql.forEach(assignment => {
+            if (uniqueLessonIds.findIndex(elem => elem == assignment.lesson_id) == -1) uniqueLessonIds.push(assignment.lesson_id);
+        });
+
+        getPastAssignments_sql.forEach(assignment => {
+            if (uniqueLessonIds.findIndex(elem => elem == assignment.lesson_id) == -1) uniqueLessonIds.push(assignment.lesson_id);
+        });
+
+        if (uniqueLessonIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        const [getLessonList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT lesson_id, name as lesson_name FROM Lesson WHERE lesson_id IN (?)',
+            [uniqueLessonIds]
+        ));
+
+        toReturn.lessonList = [...getLessonList_sql];
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);

@@ -18,7 +18,7 @@ function EnterAssignment(props) {
     }, [props.givenAssignments])
 
     useEffect(() => {
-        if (props.givenAssignments.lessonList?.length > 0 && selectedAssignmentId != -1) {
+        if (props.givenAssignments.lessonList?.length > 0 && selectedLessonId != -1) {
             setStudentList(() => {
                 let index = props.givenAssignments.lessonList.findIndex(elem => elem.lesson_id == selectedLessonId);
                 return props.givenAssignments.lessonList[index].studentsTakingTheLesson.map(elem => {
@@ -92,7 +92,7 @@ function EnterAssignment(props) {
             <p>Ödev Girişi</p>
             <div className={`${styles.flex} ${styles.flexRow} ${styles.flexGap} ${styles.flexJustifyCenter}`}>
                 <p>Ders:</p>
-                <select onChange={(event) => { setSelectedLessonId(event.target.value) }}>
+                <select onChange={(event) => { setSelectedLessonId(event.target.value) }} value={selectedLessonId}>
                     {lessonSelectElems}
                 </select>
             </div>
