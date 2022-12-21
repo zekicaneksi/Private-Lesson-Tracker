@@ -37,7 +37,7 @@ function LessonBox(props) {
             <p>{props.lessonInfo.lesson_name}</p>
             <div className={`${styles.flex} ${styles.flexColumn}`}>
                 <button className={`${styles.marginLeftAuto}`}
-                    onClick={() => { props.setNavInfo({lesson_name: props.lessonInfo.name, lesson_id: props.lessonInfo.lesson_id}); }}>Seans Geçmişi</button>
+                    onClick={() => { props.setNavInfo({lesson_name: props.lessonInfo.lesson_name, lesson_id: props.lessonInfo.lesson_id}); }}>Seans Geçmişi</button>
                 <select size={5}>
                     {sessionElems}
                 </select>

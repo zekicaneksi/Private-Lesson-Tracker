@@ -1327,4 +1327,17 @@ app.get('/getStudentLessonInfoById', async (req, res) => {
     }
 });
 
+app.get('/getStudentSessionHistoryById', async (req, res) => {
+    try {
+        const [getSessionHistory] = await dbConnection.execute(
+            'SELECT Final.session_id, name, date, start_time, end_time, existent FROM (SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE attendance_registered = true ORDER BY date, start_time, end_time) as Final INNER JOIN Attendance ON Attendance.session_id = Final.session_id WHERE student_id = ? ORDER BY date desc, start_time, end_time',
+            [req.session.user_id, req.query.lessonId, req.session.user_id]
+        )
+
+        return res.status(200).send(JSON.stringify(getSessionHistory));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
