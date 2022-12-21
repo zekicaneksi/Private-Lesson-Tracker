@@ -29,7 +29,7 @@
 .sessionsDiv {
     display: flex;
     flex-direction: column;
-    padding: 5%;
+    padding: 0.5em;
     gap: 0.5em;
 }
 

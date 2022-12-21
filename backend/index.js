@@ -1401,4 +1401,37 @@ app.get('/getStudentAssignments', async (req, res) => {
     }
 });
 
+app.get('/getGuardianSchedule', async (req, res) => {
+    try {
+
+        let toReturn=[];
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        )
+
+        getStudentRelations_sql.forEach(relation => {
+            relation.schedule = []
+            toReturn.push(relation);
+        })
+
+        if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        
+        const [getSchedule_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT lesson_name, Session.name as session_name, date, start_time, end_time, session_id, student_id FROM (SELECT Lesson.lesson_id, Lesson.name as lesson_name, Student_Lesson.student_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?)) AS Abc INNER JOIN Session ON Abc.lesson_id = Session.lesson_id AND date > (SELECT CURDATE()) ORDER BY date, start_time',
+            [getStudentRelations_sql.map(elem => elem.user_id)]
+        ));
+
+        getSchedule_sql.forEach(session => {
+            toReturn[toReturn.findIndex(student => student.user_id == session.student_id)].schedule.push(session);
+        })
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        console.log(error);
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
