@@ -1429,7 +1429,60 @@ app.get('/getGuardianSchedule', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(toReturn));
     } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianLessons', async (req, res) => {
+    try {
+
+        let toReturn = [];
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        getStudentRelations_sql.forEach(relation => {
+            relation.lessonList = []
+            toReturn.push(relation);
+        })
+
+        if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+
+        const [getLessons_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, student_id as user_id FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id, student_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?) AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id",
+            [getStudentRelations_sql.map(elem => elem.user_id)]
+        ));
+
+        getLessons_sql.forEach(lesson => {
+            toReturn[toReturn.findIndex(student => student.user_id == lesson.user_id)].lessonList.push(lesson);
+        })
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
         console.log(error);
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianLessonInfoById', async (req, res) => {
+    try {
+        // check if the guardian has the student relation
+        const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+            [req.session.user_id, req.query.userId, req.session.user_id, req.query.userId]
+        ));
+        if (checkRelation_sql[0].count == 0) return res.status(403).send();
+
+        const [sessionList_sql] = await dbConnection.execute(
+            'SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id ORDER BY date, start_time, end_time',
+            [req.query.userId, req.query.lessonId]
+        );
+
+        return res.status(200).send(JSON.stringify(sessionList_sql));
+
+    } catch (error) {
         return res.status(403).send();
     }
 });
