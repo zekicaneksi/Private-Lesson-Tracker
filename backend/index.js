@@ -1300,4 +1300,31 @@ app.get('/getStudentSchedule', async (req, res) => {
     }
 });
 
+app.get('/getStudentLessons', async (req, res) => {
+    try {
+
+        const [studentLessons_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, COALESCE(nickname,'') as nickname FROM (SELECT * FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ? AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id) as Final LEFT OUTER JOIN Personal_Note ON Final.teacher_id = Personal_Note.for_user_id AND Personal_Note.user_id = ?",
+            [req.session.user_id, req.session.user_id]
+        ));
+
+        return res.status(200).send(JSON.stringify(studentLessons_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getStudentLessonInfoById', async (req, res) => {
+    try {
+        const [sessionList_sql] = await dbConnection.execute(
+            'SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id ORDER BY date, start_time, end_time',
+            [req.session.user_id, req.query.lessonId]
+        );
+
+        return res.status(200).send(JSON.stringify(sessionList_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
