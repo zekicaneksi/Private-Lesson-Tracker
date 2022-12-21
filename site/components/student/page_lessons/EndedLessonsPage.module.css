@@ -1,0 +1,40 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    padding: 5%;
+    align-items: center;
+    gap: 2em;
+}
+
+.container select{
+    min-width: 10em;
+}
+
+.noMarginTopBottom{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.textAlignCenter {
+    text-align: center;
+}
+
+.flex{
+    display: flex;
+}
+
+.flexRow {
+    flex-direction: row;
+}
+
+.flexColumn {
+    flex-direction: column;
+}
+
+.flexGap{
+    gap: 2em;
+}
+
+.flexWrap{
+    flex-wrap: wrap;
+}
