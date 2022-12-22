@@ -1605,9 +1605,73 @@ app.get('/getGuardianAssignments', async (req, res) => {
             [uniqueLessonIds]
         ));
 
-        return res.status(200).send(JSON.stringify({assignmentList: toReturn, lessonList: getLessonList_sql}));
+        return res.status(200).send(JSON.stringify({ assignmentList: toReturn, lessonList: getLessonList_sql }));
     } catch (error) {
         console.log(error);
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianPayments', async (req, res) => {
+    try {
+        let toReturn = {
+            studentList: [],
+            paymentList: [],
+            lessonList: []
+        };
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        getStudentRelations_sql.forEach(relation => {
+            relation.lessonList = []
+            toReturn.studentList.push(relation);
+        })
+
+        if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        let usrIdList = getStudentRelations_sql.map(elem => elem.user_id)
+
+        const [getLessons_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT * FROM Student_Lesson WHERE student_id IN (?)',
+            [usrIdList]
+        ));
+
+        getLessons_sql.forEach(elem => {
+            toReturn.studentList[toReturn.studentList.findIndex(student => student.user_id == elem.student_id)].lessonList.push(elem.lesson_id);
+        })
+
+        const [getPayments_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT * FROM Payment WHERE student_id IN (?) ORDER BY due',
+            [usrIdList]
+        ))
+
+        toReturn.paymentList = [...getPayments_sql];
+
+        getPayments_sql.forEach(payment => {
+            let index = toReturn.studentList.findIndex(student => student.user_id == payment.student_id);
+            if (toReturn.studentList[index].lessonList.findIndex(lessonId => lessonId == payment.lesson_id) == -1) toReturn.studentList[index].lessonList.push(payment.lesson_id);
+        });
+
+        let uniqueLessonIds = [];
+        toReturn.studentList.forEach(student => {
+            student.lessonList.forEach(lessonId => {
+                if (uniqueLessonIds.findIndex(elem => elem == lessonId) == -1) uniqueLessonIds.push(lessonId);
+            })
+        })
+        
+        const [getLessonsInfo_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT lesson_id, name FROM Lesson WHERE lesson_id IN (?)",
+            [uniqueLessonIds]
+        ));
+
+        toReturn.lessonList = [...getLessonsInfo_sql];
+
+        
+        return res.status(200).send(JSON.stringify(toReturn));
+
+    } catch (error) {
         return res.status(403).send();
     }
 });

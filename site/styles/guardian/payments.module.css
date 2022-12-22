@@ -1,0 +1,18 @@
+.pageContainer{
+    padding: 5%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4em;
+}
+
+.pageContainer select{
+    min-width: 10em;
+}
+
+.displayFlex{
+    display: flex;
+}
+
+.flexGap{
+    gap:0.8em;
+}
