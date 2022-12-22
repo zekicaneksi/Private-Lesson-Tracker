@@ -1676,4 +1676,32 @@ app.get('/getGuardianPayments', async (req, res) => {
     }
 });
 
+app.get('/getGuardianUpcomingPayments', async (req, res) => {
+    try {
+
+        let toReturn = {
+            paymentList: [],
+            studentList: []
+        }
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        toReturn.studentList = [...getStudentRelations_sql];
+        if(getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        const [getPaymentList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT payment_id, Lesson.lesson_id, Lesson.name as lesson_name, student_id, amount, due FROM Payment INNER JOIN Lesson ON Payment.lesson_id = Lesson.lesson_id WHERE Student_id IN (?) AND paid = false ORDER BY due',
+            [getStudentRelations_sql.map(elem => elem.user_id)]
+        ));
+
+        toReturn.paymentList = [...getPaymentList_sql];
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
