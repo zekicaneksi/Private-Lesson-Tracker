@@ -38,7 +38,7 @@ function LessonBox(props) {
             <p>{props.lessonInfo.lesson_name}</p>
             <div className={`${styles.flex} ${styles.flexColumn}`}>
                 <button className={`${styles.marginLeftAuto}`}
-                    onClick={() => { props.setNavInfo({ lesson_name: props.lessonInfo.lesson_name, lesson_id: props.lessonInfo.lesson_id, userId: props.userId }); }}>Seans Geçmişi</button>
+                    onClick={() => { props.setNavInfo({ lesson_name: props.lessonInfo.lesson_name, lesson_id: props.lessonInfo.lesson_id, userId: props.userId, teacher_name: teacherName, user_name: props.user_name }); }}>Seans Geçmişi</button>
                 <select size={5}>
                     {sessionElems}
                 </select>
@@ -72,8 +72,10 @@ export default function LessonsPage(props) {
         return <option key={elem.user_id} value={elem.user_id}>{optionText}</option>
     })
 
-    const lessonBoxList = userList.find(usr => usr.user_id == selectedStudentId)?.lessonList.map(elem => {
-        return <LessonBox key={elem.lesson_id} lessonInfo={elem} userId={selectedStudentId} setNavInfo={props.setNavInfo} />
+    let usr = userList.find(usr => usr.user_id == selectedStudentId);
+    let usrName = (usr != undefined ? usr.name + ' ' + usr.surname + ((usr.nickname != '' && usr.nickname != null) ? (' (' + usr.nickname + ')') : '') : '');
+    const lessonBoxList = usr?.lessonList.map(elem => {
+        return <LessonBox key={elem.lesson_id} lessonInfo={elem} user_name={usrName} userId={selectedStudentId} setNavInfo={props.setNavInfo} />
     })
 
     return (

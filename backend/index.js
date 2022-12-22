@@ -1487,4 +1487,24 @@ app.get('/getGuardianLessonInfoById', async (req, res) => {
     }
 });
 
+app.get('/getGuardianSessionHistoryById', async (req, res) => {
+    try {
+        // check if the guardian has the student relation
+        const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+            [req.session.user_id, req.query.userId, req.session.user_id, req.query.userId]
+        ));
+        if (checkRelation_sql[0].count == 0) return res.status(403).send();
+
+        const [getSessionHistory] = await dbConnection.execute(
+            'SELECT Final.session_id, name, date, start_time, end_time, existent FROM (SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE attendance_registered = true ORDER BY date, start_time, end_time) as Final INNER JOIN Attendance ON Attendance.session_id = Final.session_id WHERE student_id = ? ORDER BY date desc, start_time, end_time',
+            [req.query.userId, req.query.lessonId, req.query.userId]
+        )
+
+        return res.status(200).send(JSON.stringify(getSessionHistory));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
