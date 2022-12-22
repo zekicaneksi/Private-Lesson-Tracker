@@ -1549,4 +1549,67 @@ app.get('/getGuardianSessionHistoryById', async (req, res) => {
     }
 });
 
+app.get('/getGuardianAssignments', async (req, res) => {
+    try {
+
+        let toReturn = [];
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        )
+
+        getStudentRelations_sql.forEach(relation => {
+            relation.assignments = {
+                activeAssignments: [],
+                pastAssignments: []
+            }
+            toReturn.push(relation);
+        })
+
+        if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+
+        const [getActiveAssignments_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT assignment_id, Assignment.lesson_id, header, content, due, student_id  FROM Student_Lesson INNER JOIN Assignment ON Student_Lesson.lesson_id = Assignment.lesson_id WHERE student_id IN (?) AND Assignment.done = false ORDER BY due',
+            [getStudentRelations_sql.map(elem => elem.user_id)]
+        ));
+
+        getActiveAssignments_sql.forEach(assignment => {
+            let index = toReturn.findIndex(elem => elem.user_id == assignment.student_id);
+            toReturn[index].assignments.activeAssignments.push(assignment);
+        })
+
+        const [getPastAssignments_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT Assignment.assignment_id, Assignment.lesson_id, header, content, due, a_s.done, student_id FROM Assignment_Student as a_s INNER JOIN Assignment ON a_s.assignment_id = Assignment.assignment_id WHERE student_id IN (?)  ORDER BY due desc',
+            [getStudentRelations_sql.map(elem => elem.user_id)]
+        ));
+
+        getPastAssignments_sql.forEach(assignment => {
+            let index = toReturn.findIndex(elem => elem.user_id == assignment.student_id);
+            toReturn[index].assignments.pastAssignments.push(assignment);
+        })
+
+        let uniqueLessonIds = [];
+
+        getActiveAssignments_sql.forEach(assignment => {
+            if (uniqueLessonIds.findIndex(elem => elem == assignment.lesson_id) == -1) uniqueLessonIds.push(assignment.lesson_id);
+        });
+
+        getPastAssignments_sql.forEach(assignment => {
+            if (uniqueLessonIds.findIndex(elem => elem == assignment.lesson_id) == -1) uniqueLessonIds.push(assignment.lesson_id);
+        });
+
+        if (uniqueLessonIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        const [getLessonList_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT lesson_id, name as lesson_name FROM Lesson WHERE lesson_id IN (?)',
+            [uniqueLessonIds]
+        ));
+
+        return res.status(200).send(JSON.stringify({assignmentList: toReturn, lessonList: getLessonList_sql}));
+    } catch (error) {
+        console.log(error);
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
