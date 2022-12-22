@@ -64,6 +64,15 @@ export default function LessonsPage(props) {
     }, []);
 
     useEffect(() => {
+        if(selectedStudentId == '') props.setSelectedUserInfo(null);
+        else {
+            let elem = userList.find(usr => usr.user_id == selectedStudentId);
+            let name = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
+            props.setSelectedUserInfo({name: name, userId: elem.user_id})
+        }
+    }, [selectedStudentId])
+
+    useEffect(() => {
         if (userList.length > 0) setSelectedStudentId(userList[0].user_id);
     }, [userList])
 

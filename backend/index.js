@@ -1269,7 +1269,7 @@ app.get('/getTeacherUpcomingAttendance', async (req, res) => {
         let uniqueUserIds = []
         toReturn.lessonList.forEach(lesson => {
             lesson.studentsTakingTheLesson.forEach(id => {
-                if(uniqueUserIds.findIndex(elem => elem==id) == -1) uniqueUserIds.push(id);
+                if (uniqueUserIds.findIndex(elem => elem == id) == -1) uniqueUserIds.push(id);
             })
         })
 
@@ -1293,7 +1293,7 @@ app.get('/getStudentSchedule', async (req, res) => {
             'SELECT lesson_name, Session.name as session_name, date, start_time, end_time, session_id FROM (SELECT Lesson.lesson_id, Lesson.name as lesson_name FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ?) AS Abc INNER JOIN Session ON Abc.lesson_id = Session.lesson_id AND date > (SELECT CURDATE()) ORDER BY date, start_time',
             [req.session.user_id]
         )
-        
+
         return res.status(200).send(JSON.stringify(getSchedule_sql));
     } catch (error) {
         return res.status(403).send();
@@ -1342,13 +1342,13 @@ app.get('/getStudentSessionHistoryById', async (req, res) => {
 
 app.get('/getStudentEndedLessons', async (req, res) => {
     try {
-        
+
         const [studentLessons_sql] = await dbConnection.execute(dbConnection.format(
             "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, COALESCE(nickname,'') as nickname FROM (SELECT * FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ? AND ended = true) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id) as Final LEFT OUTER JOIN Personal_Note ON Final.teacher_id = Personal_Note.for_user_id AND Personal_Note.user_id = ?",
             [req.session.user_id, req.session.user_id]
         ));
 
-            return res.status(200).send(JSON.stringify(studentLessons_sql));
+        return res.status(200).send(JSON.stringify(studentLessons_sql));
     } catch (error) {
         return res.status(403).send();
     }
@@ -1357,17 +1357,17 @@ app.get('/getStudentEndedLessons', async (req, res) => {
 app.get('/getStudentAssignments', async (req, res) => {
     try {
 
-        let toReturn={
+        let toReturn = {
             activeAssignments: [],
             pastAssignments: [],
             lessonList: []
         }
-        
+
         const [getActiveAssignments_sql] = await dbConnection.execute(
             'SELECT assignment_id, Assignment.lesson_id, header, content, due  FROM Student_Lesson INNER JOIN Assignment ON Student_Lesson.lesson_id = Assignment.lesson_id WHERE student_id = ? AND Assignment.done = false ORDER BY due',
             [req.session.user_id]
         );
-        
+
         toReturn.activeAssignments = [...getActiveAssignments_sql];
 
         const [getPastAssignments_sql] = await dbConnection.execute(
@@ -1404,7 +1404,7 @@ app.get('/getStudentAssignments', async (req, res) => {
 app.get('/getGuardianSchedule', async (req, res) => {
     try {
 
-        let toReturn=[];
+        let toReturn = [];
 
         const [getStudentRelations_sql] = await dbConnection.execute(
             'Select Final.user_id, name, surname, nickname FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
@@ -1417,7 +1417,7 @@ app.get('/getGuardianSchedule', async (req, res) => {
         })
 
         if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
-        
+
         const [getSchedule_sql] = await dbConnection.execute(dbConnection.format(
             'SELECT lesson_name, Session.name as session_name, date, start_time, end_time, session_id, student_id FROM (SELECT Lesson.lesson_id, Lesson.name as lesson_name, Student_Lesson.student_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?)) AS Abc INNER JOIN Session ON Abc.lesson_id = Session.lesson_id AND date > (SELECT CURDATE()) ORDER BY date, start_time',
             [getStudentRelations_sql.map(elem => elem.user_id)]
@@ -1489,6 +1489,48 @@ app.get('/getGuardianLessonInfoById', async (req, res) => {
 
 app.get('/getGuardianSessionHistoryById', async (req, res) => {
     try {
+        // check if the guardian has the student relation
+        const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+            [req.session.user_id, req.query.userId, req.session.user_id, req.query.userId]
+        ));
+        if (checkRelation_sql[0].count == 0) return res.status(403).send();
+
+        const [getSessionHistory] = await dbConnection.execute(
+            'SELECT Final.session_id, name, date, start_time, end_time, existent FROM (SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE attendance_registered = true ORDER BY date, start_time, end_time) as Final INNER JOIN Attendance ON Attendance.session_id = Final.session_id WHERE student_id = ? ORDER BY date desc, start_time, end_time',
+            [req.query.userId, req.query.lessonId, req.query.userId]
+        )
+
+        return res.status(200).send(JSON.stringify(getSessionHistory));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianEndedLessons', async (req, res) => {
+    try {
+        // check if the guardian has the student relation
+        const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+            [req.session.user_id, req.query.userId, req.session.user_id, req.query.userId]
+        ));
+        if (checkRelation_sql[0].count == 0) return res.status(403).send();
+
+        const [studentLessons_sql] = await dbConnection.execute(dbConnection.format(
+            "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, COALESCE(nickname,'') as nickname FROM (SELECT * FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ? AND ended = true) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id) as Final LEFT OUTER JOIN Personal_Note ON Final.teacher_id = Personal_Note.for_user_id AND Personal_Note.user_id = ?",
+            [req.query.userId, req.query.userId]
+        ));
+
+        return res.status(200).send(JSON.stringify(studentLessons_sql));
+
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianSessionHistoryById', async (req, res) => {
+    try {
+
         // check if the guardian has the student relation
         const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
             'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',

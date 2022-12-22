@@ -11,15 +11,17 @@ import EndedLessonsPage from '../../components/guardian/page_lessons/EndedLesson
 export default function Lessons() {
 
     const [navInfo, setNavInfo] = useState("lessonsPage");
+    const [selectedUserInfo, setSelectedUserInfo] = useState(null);
 
     function getPageComponent() {
+
         switch (navInfo) {
             case "lessonsPage":
-                return <LessonsPage setNavInfo={setNavInfo}/>
+                return <LessonsPage setNavInfo={setNavInfo} setSelectedUserInfo={setSelectedUserInfo}/>
                 break;
 
             case "endedLessonsPage":
-                return <EndedLessonsPage />
+                return <EndedLessonsPage userInfo={selectedUserInfo}/>
                 break;
 
             default:
@@ -33,7 +35,8 @@ export default function Lessons() {
             <div className={styles.navContainer}>
                 {navInfo == "lessonsPage" ? (
                     <>
-                        <button onClick={() => setNavInfo("endedLessonsPage")}>Sonlanmış Dersler</button>
+                        <button onClick={() => setNavInfo("endedLessonsPage")}
+                        className={(selectedUserInfo == null ? 'disabled' : '')}>Sonlanmış Dersler</button>
                     </>
                 ) : (
                     <>
