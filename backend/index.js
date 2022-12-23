@@ -676,19 +676,20 @@ app.get('/getSessionHistoryById', async (req, res) => {
             if (elem.attendance_registered == 1) elem.attendanceList = [];
             return elem;
         });
-
+        
         // Get attendance list
         let sessionIds = [];
         sessionList_sql.forEach(elem => { if (elem.attendance_registered == 1) sessionIds.push(elem.session_id) });
-        if (sessionIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
-        const [attendanceList_sql] = await dbConnection.execute(dbConnection.format(
-            'SELECT * FROM Attendance WHERE session_id IN (?)',
-            [sessionIds]
-        ));
-
-        attendanceList_sql.forEach(elem => {
-            toReturn.sessionList[toReturn.sessionList.findIndex(sessionElem => sessionElem.session_id == elem.session_id)].attendanceList.push(elem);
-        });
+        if (sessionIds.length != 0){
+            const [attendanceList_sql] = await dbConnection.execute(dbConnection.format(
+                'SELECT * FROM Attendance WHERE session_id IN (?)',
+                [sessionIds]
+            ));
+            
+            attendanceList_sql.forEach(elem => {
+                toReturn.sessionList[toReturn.sessionList.findIndex(sessionElem => sessionElem.session_id == elem.session_id)].attendanceList.push(elem);
+            });
+        }
 
         // Get the users that taking the lesson
         const [studentsTakingTheLesson_sql] = await dbConnection.execute(
@@ -706,6 +707,10 @@ app.get('/getSessionHistoryById', async (req, res) => {
             })
         });
 
+        studentsTakingTheLesson_sql.forEach(elem => {
+            if (uniqueIds.findIndex(uniqueIdElem => uniqueIdElem == elem.user_id) == -1) uniqueIds.push(elem.user_id);
+        })
+        
         if (uniqueIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
         const [userList_sql] = await dbConnection.execute(dbConnection.format(
             'SELECT User.user_id, name, surname, nickname FROM User INNER JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id WHERE User.user_id IN (?) AND Personal_Note.user_id = ?',
@@ -1523,27 +1528,6 @@ app.get('/getGuardianEndedLessons', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(studentLessons_sql));
 
-    } catch (error) {
-        return res.status(403).send();
-    }
-});
-
-app.get('/getGuardianSessionHistoryById', async (req, res) => {
-    try {
-
-        // check if the guardian has the student relation
-        const [checkRelation_sql] = await dbConnection.execute(dbConnection.format(
-            'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
-            [req.session.user_id, req.query.userId, req.session.user_id, req.query.userId]
-        ));
-        if (checkRelation_sql[0].count == 0) return res.status(403).send();
-
-        const [getSessionHistory] = await dbConnection.execute(
-            'SELECT Final.session_id, name, date, start_time, end_time, existent FROM (SELECT session_id, name, date, start_time, end_time FROM (SELECT Lesson.lesson_id FROM Lesson INNER JOIN Student_Lesson on lesson.lesson_id = Student_Lesson.lesson_id WHERE student_id = ? AND Lesson.lesson_id = ?) as Lesson INNER JOIN Session ON Lesson.lesson_id = Session.lesson_id WHERE attendance_registered = true ORDER BY date, start_time, end_time) as Final INNER JOIN Attendance ON Attendance.session_id = Final.session_id WHERE student_id = ? ORDER BY date desc, start_time, end_time',
-            [req.query.userId, req.query.lessonId, req.query.userId]
-        )
-
-        return res.status(200).send(JSON.stringify(getSessionHistory));
     } catch (error) {
         return res.status(403).send();
     }

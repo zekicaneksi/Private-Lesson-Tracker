@@ -49,7 +49,7 @@ export default function Schedule() {
             }
         });
     }, []);
-console.log(scheduleWeekArr);
+
     const scheduleTableElems = scheduleWeekArr.map(elem => {
         elem.weekDate = new Date(elem.weekDate)
         return (

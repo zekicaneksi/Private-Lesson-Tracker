@@ -72,6 +72,8 @@ function AttendanceField(props) {
                 return elem;
             }));
         }
+        let elem = props.sessionList.sessionList?.find(elem => {if (new Date(elem.date) < new Date() && elem.attendance_registered == false) return true;});
+        if (elem != undefined) setSelectedSessionId(elem.session_id);
     }, [props.sessionList]);
 
     function selectOnChange(event){
@@ -120,7 +122,8 @@ function AttendanceField(props) {
     return (
         <div className={`fieldContainer ${styles.flex} ${styles.flex} ${styles.flexGap}`}>
             <p>İşlenen Derslerin Yoklama Girişi</p>
-            <select size={5} onChange={(event) => {selectOnChange(event)}}>
+            <select size={5} onChange={(event) => {selectOnChange(event)}}
+            value={selectedSessionId}>
                 {selectElems}
             </select>
             <div className={`${styles.transferDiv} ${styles.flexGap} ${selectedSessionId == '' ? 'disabled' : ''}`}>
@@ -129,7 +132,7 @@ function AttendanceField(props) {
                     rightSideLabel="Gelmeyen Öğrenciler"
                     elemArray={studentList}
                     setElemArray={setStudentList} />
-                <button onClick={takeAttendanceBtnHandle} className={`${selectedSessionId == '' ? 'disabled':''}`}>Yoklamayı al</button>
+                <button onClick={takeAttendanceBtnHandle}>Yoklamayı al</button>
             </div>
         </div>
     );
@@ -145,6 +148,7 @@ export default function SessionHistoryPage(props) {
             if (response.status == 200) {
 
                 let res = await response.json();
+                
                 setSessionList(res);
 
                 setLoading(false);
