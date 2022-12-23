@@ -31,10 +31,9 @@ export default function Schedule() {
         let res = scheduleList.find(elem => elem.user_id == selectedStudentId).schedule;
         res.forEach(elem => {
             let date = new Date(elem.date);
-            let arrDate = new Date();
+            let arrDate = new Date(elem.date);
             let dateDiff = date.getDay() - 1;
             arrDate.setDate(date.getDate() - (dateDiff > 0 ? dateDiff : (dateDiff * -6)));
-            arrDate.setHours(0, 0, 0, 0);
             let index = arr.findIndex(arrElem => arrElem.weekDate.getTime() == arrDate.getTime());
             if (index == -1) index = arr.push({
                 weekDate: arrDate, days: {
