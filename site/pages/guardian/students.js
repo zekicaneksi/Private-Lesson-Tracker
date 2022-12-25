@@ -10,7 +10,7 @@ export default function Students() {
 
     const [loading, setLoading] = useState(true)
     const [studentList, setStudentList] = useState([]);
-    const [selectedRelationId, setSelectedRelationId] = useState(null);
+    const [selectedRelationId, setSelectedRelationId] = useState('');
 
     return (
         <div className={`${stylesTeachersGuardians.pageContainer} ${loading ? stylesTeachersGuardians.disabled : ''}`}>

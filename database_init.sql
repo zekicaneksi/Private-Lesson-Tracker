@@ -131,20 +131,50 @@ CREATE TABLE Personal_Note (
     CHECK (user_id != for_user_id)
 );
 
-CREATE TABLE Message_Type (
-	message_type_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL
-);
-
-CREATE TABLE Message (
-	message_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE Message_Personal (
+	message_personal_id INT PRIMARY KEY AUTO_INCREMENT,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
-    type_id INT NOT NULL,
+    content VARCHAR(150) NOT NULL,
+	date DATETIME NOT NULL,
     
-    FOREIGN KEY (sender_id) REFERENCES User (user_id),
-    FOREIGN KEY (receiver_id) REFERENCES User (user_id),
-    FOREIGN KEY (type_id) REFERENCES Message_Type (message_type_id)
+    FOREIGN KEY (sender_id) REFERENCES User(user_id),
+    FOREIGN KEY (receiver_id) REFERENCES User(user_id)
+);
+
+CREATE TABLE Message_Teacher_Guardian (
+	message_teacher_guardian_id INT PRIMARY KEY AUTO_INCREMENT,
+    teacher_id INT NOT NULL,
+    student_id INT NOT NULL,
+    content VARCHAR(150) NOT NULL,
+    date DATETIME NOT NULL,
+    
+    FOREIGN KEY (teacher_id) REFERENCES User(user_id),
+    FOREIGN KEY (student_id) REFERENCES User(user_id)
+);
+
+CREATE TABLE Message_Guardian_Teacher (
+	message_guardian_teacher_id INT PRIMARY KEY AUTO_INCREMENT,
+    guardian_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    student_id INT NOT NULL,
+    content VARCHAR(150) NOT NULL,
+    date DATETIME NOT NULL,
+    
+    FOREIGN KEY (guardian_id) REFERENCES User(user_id),
+    FOREIGN KEY (teacher_id) REFERENCES User(user_id),
+    FOREIGN KEY (student_id) REFERENCES User(user_id)
+);
+
+CREATE TABLE Message_Lesson (
+	message_lesson_id INT PRIMARY KEY AUTO_INCREMENT,
+    sender_id INT NOT NULL,
+    lesson_id INT NOT NULL,
+    content VARCHAR(150) NOT NULL,
+    date DATETIME NOT NULL,
+    
+    FOREIGN KEY (sender_id) REFERENCES User(user_id),
+    FOREIGN KEY (lesson_id) REFERENCES Lesson(lesson_id)
 );
 
 CREATE TABLE Notification (

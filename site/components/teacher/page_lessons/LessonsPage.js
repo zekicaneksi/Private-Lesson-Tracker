@@ -234,6 +234,18 @@ function LessonBox(props) {
         });
     }
 
+    function sendMsgToStudentsBtnHandle(){
+        let label = '('+props.lessonInfo.lesson_id+') ' + props.lessonInfo.name;
+        router.push({
+            pathname: '/teacher/messages',
+            query: {
+                label: label,
+                typeInfo_name: 'lesson',
+                typeInfo_lesson_id: props.lessonInfo.lesson_id
+            }
+        }, '/teacher/messages');
+    }
+
     let sortedSessionList = lessonInfo.sessionList.sort((a, b) => {
         if (a.date > b.date) return 1;
         else if (a.date < b.date) return -1;
@@ -310,7 +322,8 @@ function LessonBox(props) {
             <div className={`fieldContainer ${styles.flex} ${styles.flexColumn} globalFieldContainerPadding`}>
                 <p>Öğrenciler</p>
                 <button onClick={sendMsgBtnHandle}
-                    className={`${styles.marginLeftAuto} ${studentListElems.length == 0 ? 'disabled' : ''}`}>Öğrencilere Mesaj Gönder</button>
+                    className={`${styles.marginLeftAuto} ${studentListElems.length == 0 ? 'disabled' : ''}`}
+                    onClick={sendMsgToStudentsBtnHandle}>Ders Grubuna Mesaj Gönder</button>
                 <select size={5} onChange={(event) => { changeFormValue("selectedStudentId", event.target.value) }}>
                     {studentListElems}
                 </select>
