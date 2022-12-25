@@ -202,13 +202,6 @@ function LessonBox(props) {
         });
     }
 
-    function sendMsgBtnHandle() {
-        router.push({
-            pathname: '/teacher/messages',
-            query: { lessonId: props.lessonInfo.lesson_id }
-        }, '/teacher/messages');
-    }
-
     function endLessonBtnHandle(){
 
         function endLesson(){
@@ -321,7 +314,7 @@ function LessonBox(props) {
 
             <div className={`fieldContainer ${styles.flex} ${styles.flexColumn} globalFieldContainerPadding`}>
                 <p>Öğrenciler</p>
-                <button onClick={sendMsgBtnHandle}
+                <button
                     className={`${styles.marginLeftAuto} ${studentListElems.length == 0 ? 'disabled' : ''}`}
                     onClick={sendMsgToStudentsBtnHandle}>Ders Grubuna Mesaj Gönder</button>
                 <select size={5} onChange={(event) => { changeFormValue("selectedStudentId", event.target.value) }}>
