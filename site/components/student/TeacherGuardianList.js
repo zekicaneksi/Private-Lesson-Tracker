@@ -128,6 +128,19 @@ export default function TeacherGuardianList(props) {
             query: { user_id: getSelectedRelation().user_id }
         }, '/student/messages');
     }
+    function sendMsgBtnHandle(type){
+        let user = getSelectedRelation();
+        let label = user.name + ' ' + user.surname + ((user.nickname != '' && user.nickname != null) ? (' (' + user.nickname + ')') : '');
+
+        router.push({
+            pathname: '/student/messages',
+            query: {
+                label: label,
+                typeInfo_name: 'personal',
+                typeInfo_id: user.user_id
+            }
+        }, '/student/messages');
+    }
 
     useEffect(() => {
         backendFetchGET(type.route, async (response) => {

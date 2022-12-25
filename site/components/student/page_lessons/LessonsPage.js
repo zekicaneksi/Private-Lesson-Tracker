@@ -23,6 +23,24 @@ function LessonBox(props) {
         });
     }, []);
 
+    function sendMsgBtnHandle(type){
+        let label;
+        if (type == 'lesson'){
+            label = '('+props.lessonInfo.lesson_id+') ' + props.lessonInfo.lesson_name;
+        } else {
+            label = props.lessonInfo.teacher_name + ' ' + props.lessonInfo.teacher_surname + ((props.lessonInfo.nickname != '' && props.lessonInfo.nickname != null) ? (' (' + props.lessonInfo.nickname + ')') : '');
+        }
+
+        router.push({
+            pathname: '/student/messages',
+            query: {
+                label: label,
+                typeInfo_name: type,
+                typeInfo_id: (type == 'lesson' ? props.lessonInfo.lesson_id : props.lessonInfo.teacher_id)
+            }
+        }, '/student/messages');
+    }
+
     const sessionElems = sessionList.map((elem, index) => {
         if (elem.date > new Date()) {
             let text = dateToString(elem.date) + ' ' + elem.start_time.substring(0, 5) + ' - ' + elem.end_time.substring(0, 5) + " " + elem.name;
@@ -42,6 +60,8 @@ function LessonBox(props) {
                     {sessionElems}
                 </select>
                 <p>Öğretmen: {teacherName}</p>
+                <button onClick={() => {sendMsgBtnHandle('personal')}}>Öğretmene Mesaj Gönder</button>
+                <button onClick={() => {sendMsgBtnHandle('lesson')}}>Ders Grubuna Mesaj Gönder</button>
             </div>
         </div>
     );

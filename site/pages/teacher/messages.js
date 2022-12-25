@@ -13,6 +13,8 @@ function Students(props) {
         personalNoteInput: ''
     });
 
+    const [selectElements, setSelectElements] = useState([]);
+
     function changeFormValue(key, value) {
         setFormValues((old) => {
             let newVal = { ...old };
@@ -90,7 +92,8 @@ function Students(props) {
     useEffect(() => {
         backendFetchGET('/getStudentRelations', async (response) => {
             if (response.status == 200) {
-                props.setStudentList(await response.json());
+                let res = await response.json();
+                props.setStudentList(res);
             }
         });
     }, []);
@@ -103,20 +106,30 @@ function Students(props) {
         }
     }, [props.selectedRelationId])
 
-    const selectElements = props.studentList?.map(elem => {
-        let fullName = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
-        const pattern = new RegExp(formValues.searchInput, 'i');
-        if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
-            return (
-                <option key={elem.relation_id} value={elem.relation_id}>{fullName}</option>
-            );
+    useEffect(() => {
+        if (props.studentList != undefined){
+            let toSet = [];
+            props.studentList.forEach(elem => {
+                let fullName = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
+                const pattern = new RegExp(formValues.searchInput, 'i');
+                if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
+                    toSet.push(
+                        <option key={elem.relation_id} value={elem.relation_id}>{fullName}</option>
+                    );
+                }
+            })
+            setSelectElements(toSet);       
         }
-    });
+    }, [props.studentList, formValues.searchInput]);
+
+    useEffect(() => {
+        if (selectElements.length > 0) props.setSelectedRelationId(selectElements[0].props.value);    
+    }, [selectElements])
 
     return (
         <div className={`fieldContainer ${styles.container}`}>
             <p>Öğrenci Listesi</p>
-            <input placeholder='Ara...' onChange={(event) => { changeFormValue('searchInput', event.target.value); props.setSelectedRelationId(null) }}></input>
+            <input placeholder='Ara...' onChange={(event) => { changeFormValue('searchInput', event.target.value); props.setSelectedRelationId('') }}></input>
             <select size={5} onChange={(event) => { props.setSelectedRelationId(event.target.value) }}
                 value={props.selectedRelationId}>
                 {selectElements}

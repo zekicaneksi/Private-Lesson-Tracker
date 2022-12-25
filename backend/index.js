@@ -1310,7 +1310,7 @@ app.get('/getStudentLessons', async (req, res) => {
     try {
 
         const [studentLessons_sql] = await dbConnection.execute(dbConnection.format(
-            "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, COALESCE(nickname,'') as nickname FROM (SELECT * FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ? AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id) as Final LEFT OUTER JOIN Personal_Note ON Final.teacher_id = Personal_Note.for_user_id AND Personal_Note.user_id = ?",
+            "SELECT lesson_id, lesson_name, name as teacher_name, Final.user_id as teacher_id, surname as teacher_surname, COALESCE(nickname,'') as nickname FROM (SELECT * FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id = ? AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id) as Final LEFT OUTER JOIN Personal_Note ON Final.teacher_id = Personal_Note.for_user_id AND Personal_Note.user_id = ?",
             [req.session.user_id, req.session.user_id]
         ));
 
@@ -1832,6 +1832,110 @@ app.post('/sendTeacherMessage', async (req, res) => {
         return res.status(200).send(JSON.stringify({insertId: insertId}));
     } catch (error) {
         console.log(error);
+        return res.status(403).send();
+    }
+});
+
+app.get('/getRelationsOfStudent', async (req, res) => {
+    try {
+        const [getRelations_sql] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content FROM (SELECT relation_id, user_id, name, surname FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id IN (1,3)) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        )
+
+        return res.status(200).send(JSON.stringify(getRelations_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getStudentMessages', async (req, res) => {
+    try {
+        let toReturn = {
+            myId: req.session.user_id,
+            personalMessages: [],
+            lessonMessages: [],
+            userInfo: []
+        }
+
+        const [getPersonalMessages_sql] = await dbConnection.execute(
+            'SELECT * FROM Message_Personal WHERE sender_id = ? OR receiver_id = ? ORDER BY date',
+            [req.session.user_id, req.session.user_id]
+        );
+        toReturn.personalMessages = [...getPersonalMessages_sql];
+
+        const [getLessonMessages_sql] = await dbConnection.execute(
+            'SELECT Abc.message_lesson_id, Lesson.name as lesson_name, Abc.sender_id, Abc.lesson_id, Abc.content, Abc.date FROM (SELECT * FROM Message_Lesson WHERE lesson_id IN (SELECT lesson_id FROM Student_Lesson WHERE student_id = ?) ORDER BY date) as Abc INNER JOIN Lesson on Abc.lesson_id = Lesson.lesson_id',
+            [req.session.user_id]
+        )
+        toReturn.lessonMessages = [...getLessonMessages_sql];
+
+        let uniqueIds = [];
+
+        getPersonalMessages_sql.forEach(msg => {
+            if(uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
+            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+        })
+
+        getLessonMessages_sql.forEach(msg => {
+            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+        })
+
+        if (uniqueIds.length > 0) {
+            const [getUserInfo_sql] = await dbConnection.execute(dbConnection.format(
+                "SELECT User.user_id, user_type_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+                [req.session.user_id, uniqueIds]
+            ));
+
+            toReturn.userInfo = [...getUserInfo_sql];
+        }
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/sendStudentMessage', async (req, res) => {
+    try {
+        // Check if the student has permission to send message
+        if(req.body.typeInfo.name != 'lesson'){
+            const [checkPermission_sql] = await dbConnection.execute(
+                'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+                [req.session.user_id, req.body.typeInfo.student_id, req.session.user_id, req.body.typeInfo.student_id]
+            );
+            if(checkPermission_sql[0].count == 0) throw 'no permission';
+        } else {
+            const [checkPermission_sql] = await dbConnection.execute(
+                'SELECT COUNT(*) as count FROM Student_Lesson WHERE student_id = ? AND lesson_id = ?',
+                [req.session.user_id, req.body.typeInfo.lesson_id]
+            )
+            if(checkPermission_sql[0].count == 0) throw 'no permission';
+        }
+
+        // Insert the message
+        let insertId;
+        switch (req.body.typeInfo.name) {
+            case 'lesson':
+                insertId = (await dbConnection.execute(
+                    'INSERT INTO Message_Lesson (sender_id, lesson_id, content, date) VALUES (?,?,?, NOW())',
+                    [req.session.user_id, req.body.typeInfo.lesson_id, req.body.content]
+                ))[0].insertId;
+                break;
+
+            case 'personal':
+                insertId = (await dbConnection.execute(
+                    'INSERT INTO Message_Personal (sender_id, receiver_id, content, date) VALUES (?,?,?, NOW())',
+                    [req.session.user_id, req.body.typeInfo.student_id, req.body.content]
+                ))[0].insertId;
+                break;
+                
+            default:
+                break;
+        }
+
+        return res.status(200).send(JSON.stringify({insertId: insertId}));
+    } catch (error) {
         return res.status(403).send();
     }
 });
