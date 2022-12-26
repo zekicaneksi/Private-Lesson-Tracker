@@ -60,8 +60,6 @@ export default function Payments() {
     let futurePaymentElems = [];
     let pastPaymentElems = [];
 
-    console.log(pageInfo);
-
     pageInfo?.paymentList.forEach(payment => {
         if (selectedStudentId != payment.student_id && selectedStudentId != 'all') return;
         if (selectedLessonId != payment.lesson_id && selectedLessonId != 'all') return;

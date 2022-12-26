@@ -1870,7 +1870,31 @@ app.get('/getStudentMessages', async (req, res) => {
         )
         toReturn.lessonMessages = [...getLessonMessages_sql];
 
+        let guardianIds = [];
+        toReturn.userInfo.forEach((elem, index) => {
+            console.log('hey');
+            if (elem.user_type_id == 3) {
+                toReturn.userInfo[index].students = [];
+                guardianIds.push(elem.user_id);
+            }
+        })
+
+
         let uniqueIds = [];
+
+
+        if (guardianIds.length > 0){
+            const [getGuardianStudents_sql] = await dbConnection.execute(dbConnection.format(
+                'SELECT * FROM Relation WHERE user1_id IN (?) OR user2_id IN (?)',
+                [guardianIds, guardianIds]
+            ));
+
+            getGuardianStudents_sql.forEach(relation => {
+                let guardianIndex = toReturn.userInfo.findIndex(elem => (elem.user_type_id == 3 && (elem.user_id == relation.user1_id || elem.user_id == relation.user2_id)));
+                let idToPush = (toReturn.userInfo[guardianIndex].user_id == relation.user1_id ? relation.user2_id : relation.user1_id);
+                toReturn.userInfo[guardianIndex].students.push(idToPush);
+            })
+        }
 
         getPersonalMessages_sql.forEach(msg => {
             if(uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);

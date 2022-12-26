@@ -223,7 +223,7 @@ function MessageList(props) {
                     messageList.lessonMessages.forEach(message => {
                         let user = messageList.userInfo.find(usr => usr.user_id == message.sender_id);
                         let conversationIndex = getConversationIndexIfNotPushLabel('(' + message.lesson_id + ') ' + message.lesson_name, { name: 'lesson', lesson_id: message.lesson_id });
-                        let senderName = (user.user_type_id == 3 ? ('(VELİ ' + user.students.map(id => getFullName(messageList.userInfo.find(usr => usr.user_id == id))).join(' - ') + ')') : getFullName(user))
+                        let senderName = (user.user_type_id == 3 ? ('(VELİ) (' + user.students.map(id => getFullName(messageList.userInfo.find(usr => usr.user_id == id))).join(' - ') + ') ' + getFullName(user)) : getFullName(user))
                         pushMessage(message, conversationIndex, senderName, "message_lesson_id:" + message.message_lesson_id);
                     });
 

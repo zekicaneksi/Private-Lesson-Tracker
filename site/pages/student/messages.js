@@ -314,10 +314,10 @@ export default function Messages() {
                     messageList.lessonMessages.forEach(message => {
                         let user = messageList.userInfo.find(usr => usr.user_id == message.sender_id);
                         let conversationIndex = getConversationIndexIfNotPushLabel('(' + message.lesson_id + ') ' + message.lesson_name, { name: 'lesson', lesson_id: message.lesson_id });
-                        let senderName = getFullName(user);
+                        let senderName = (user.user_type_id == 3 ? ('(VELİ) ' + getFullName(user)) : (user.user_type_id == 1 ? '(Öğretmen) ' + getFullName(user) : getFullName(user)))
                         pushMessage(message, conversationIndex, senderName, "message_lesson_id:" + message.message_lesson_id);
                     });
-                    
+
                     // Sort all the conversations
                     conversationList.forEach(conversation => {
                         conversation.messageList.sort((a, b) => {
