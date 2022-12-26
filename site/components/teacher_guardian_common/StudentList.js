@@ -128,6 +128,10 @@ export default function StudentList(props) {
     }, []);
 
     useEffect(() => {
+        props.setSelectedRelationId('');
+    }, [formValues.searchInput])
+
+    useEffect(() => {
         let relation = getSelectedRelation();
         if (relation != null) {
             changeFormValue('nicknameInput', relation.nickname);
@@ -154,7 +158,7 @@ export default function StudentList(props) {
                 <select size={5} onChange={(event) => { props.setSelectedRelationId(event.target.value) }}>
                     {selectElements}
                 </select>
-                <div className={`${styles.container} ${styles.maxWidth} ${props.selectedRelationId == null ? styles.disabled : ''} ${styles.alignItems}`}>
+                <div className={`${styles.container} ${styles.maxWidth} ${props.selectedRelationId == '' ? styles.disabled : ''} ${styles.alignItems}`}>
                     <div className={styles.flexButtonContainer}>
                         <button onClick={() => { sendMsgBtnHandle('personal') }}>Mesaj Gönder</button>
                         {props.type == 'teacher' && <button onClick={() => { sendMsgBtnHandle('guardian') }}>Velisine Mesaj Gönder</button>}

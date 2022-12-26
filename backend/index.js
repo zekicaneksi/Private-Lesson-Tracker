@@ -677,16 +677,16 @@ app.get('/getSessionHistoryById', async (req, res) => {
             if (elem.attendance_registered == 1) elem.attendanceList = [];
             return elem;
         });
-        
+
         // Get attendance list
         let sessionIds = [];
         sessionList_sql.forEach(elem => { if (elem.attendance_registered == 1) sessionIds.push(elem.session_id) });
-        if (sessionIds.length != 0){
+        if (sessionIds.length != 0) {
             const [attendanceList_sql] = await dbConnection.execute(dbConnection.format(
                 'SELECT * FROM Attendance WHERE session_id IN (?)',
                 [sessionIds]
             ));
-            
+
             attendanceList_sql.forEach(elem => {
                 toReturn.sessionList[toReturn.sessionList.findIndex(sessionElem => sessionElem.session_id == elem.session_id)].attendanceList.push(elem);
             });
@@ -711,7 +711,7 @@ app.get('/getSessionHistoryById', async (req, res) => {
         studentsTakingTheLesson_sql.forEach(elem => {
             if (uniqueIds.findIndex(uniqueIdElem => uniqueIdElem == elem.user_id) == -1) uniqueIds.push(elem.user_id);
         })
-        
+
         if (uniqueIds.length == 0) return res.status(200).send(JSON.stringify(toReturn));
         const [userList_sql] = await dbConnection.execute(dbConnection.format(
             'SELECT User.user_id, name, surname, nickname FROM User INNER JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id WHERE User.user_id IN (?) AND Personal_Note.user_id = ?',
@@ -1457,7 +1457,7 @@ app.get('/getGuardianLessons', async (req, res) => {
         if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
 
         const [getLessons_sql] = await dbConnection.execute(dbConnection.format(
-            "SELECT lesson_id, lesson_name, name as teacher_name, surname as teacher_surname, student_id as user_id FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id, student_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?) AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id",
+            "SELECT lesson_id, lesson_name, teacher_id, name as teacher_name, surname as teacher_surname, student_id as user_id FROM (SELECT Lesson.lesson_id as lesson_id, Lesson.name as lesson_name, lesson.teacher_id, student_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?) AND ended = false) as Abc INNER JOIN User ON Abc.teacher_id = User.user_id",
             [getStudentRelations_sql.map(elem => elem.user_id)]
         ));
 
@@ -1645,7 +1645,7 @@ app.get('/getGuardianPayments', async (req, res) => {
                 if (uniqueLessonIds.findIndex(elem => elem == lessonId) == -1) uniqueLessonIds.push(lessonId);
             })
         })
-        
+
         const [getLessonsInfo_sql] = await dbConnection.execute(dbConnection.format(
             "SELECT lesson_id, name FROM Lesson WHERE lesson_id IN (?)",
             [uniqueLessonIds]
@@ -1653,7 +1653,7 @@ app.get('/getGuardianPayments', async (req, res) => {
 
         toReturn.lessonList = [...getLessonsInfo_sql];
 
-        
+
         return res.status(200).send(JSON.stringify(toReturn));
 
     } catch (error) {
@@ -1675,7 +1675,7 @@ app.get('/getGuardianUpcomingPayments', async (req, res) => {
         );
 
         toReturn.studentList = [...getStudentRelations_sql];
-        if(getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
+        if (getStudentRelations_sql.length == 0) return res.status(200).send(JSON.stringify(toReturn));
         const [getPaymentList_sql] = await dbConnection.execute(dbConnection.format(
             'SELECT payment_id, Lesson.lesson_id, Lesson.name as lesson_name, student_id, amount, due FROM Payment INNER JOIN Lesson ON Payment.lesson_id = Lesson.lesson_id WHERE Student_id IN (?) AND paid = false ORDER BY due',
             [getStudentRelations_sql.map(elem => elem.user_id)]
@@ -1728,23 +1728,23 @@ app.get('/getTeacherMessages', async (req, res) => {
         let uniqueIds = [];
 
         getPersonalMessages_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
-            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+            if (uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
         })
 
         getMessagesTeacherToGuardian_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
-            if(uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
+            if (uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
+            if (uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
         })
 
         getMessagesGuardianToTeacher_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.guardian_id) == -1) uniqueIds.push(msg.guardian_id);
-            if(uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
-            if(uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
+            if (uniqueIds.findIndex(elem => elem == msg.guardian_id) == -1) uniqueIds.push(msg.guardian_id);
+            if (uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
+            if (uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
         })
 
         getLessonMessages_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
         })
 
         if (uniqueIds.length > 0) {
@@ -1764,7 +1764,7 @@ app.get('/getTeacherMessages', async (req, res) => {
             }
         })
 
-        if (guardianIds.length > 0){
+        if (guardianIds.length > 0) {
             const [getGuardianStudents_sql] = await dbConnection.execute(dbConnection.format(
                 'SELECT * FROM Relation WHERE user1_id IN (?) OR user2_id IN (?)',
                 [guardianIds, guardianIds]
@@ -1785,20 +1785,19 @@ app.get('/getTeacherMessages', async (req, res) => {
 
 app.post('/sendTeacherMessage', async (req, res) => {
     try {
-
         // Check if the teacher has permission to send message
-        if(req.body.typeInfo.name != 'lesson'){
+        if (req.body.typeInfo.name != 'lesson') {
             const [checkPermission_sql] = await dbConnection.execute(
                 'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
                 [req.session.user_id, req.body.typeInfo.student_id, req.session.user_id, req.body.typeInfo.student_id]
             );
-            if(checkPermission_sql[0].count == 0) throw 'no permission';
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
         } else {
             const [checkPermission_sql] = await dbConnection.execute(
                 'SELECT COUNT(*) as count FROM Lesson WHERE teacher_id = ? AND lesson_id = ?',
                 [req.session.user_id, req.body.typeInfo.lesson_id]
             )
-            if(checkPermission_sql[0].count == 0) throw 'no permission';
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
         }
 
         // Insert the message
@@ -1810,7 +1809,7 @@ app.post('/sendTeacherMessage', async (req, res) => {
                     [req.session.user_id, req.body.typeInfo.lesson_id, req.body.content]
                 ))[0].insertId;
                 break;
-            
+
             case 'guardian':
                 insertId = (await dbConnection.execute(
                     'INSERT INTO Message_Teacher_Guardian (teacher_id, student_id, content, date) VALUES (?,?,?, NOW())',
@@ -1824,12 +1823,12 @@ app.post('/sendTeacherMessage', async (req, res) => {
                     [req.session.user_id, req.body.typeInfo.student_id, req.body.content]
                 ))[0].insertId;
                 break;
-                
+
             default:
                 break;
         }
 
-        return res.status(200).send(JSON.stringify({insertId: insertId}));
+        return res.status(200).send(JSON.stringify({ insertId: insertId }));
     } catch (error) {
         console.log(error);
         return res.status(403).send();
@@ -1873,12 +1872,12 @@ app.get('/getStudentMessages', async (req, res) => {
         let uniqueIds = [];
 
         getPersonalMessages_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
-            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+            if (uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
         })
 
         getLessonMessages_sql.forEach(msg => {
-            if(uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
         })
 
         if (uniqueIds.length > 0) {
@@ -1892,7 +1891,6 @@ app.get('/getStudentMessages', async (req, res) => {
 
         return res.status(200).send(JSON.stringify(toReturn));
     } catch (error) {
-        console.log(error);
         return res.status(403).send();
     }
 });
@@ -1900,18 +1898,18 @@ app.get('/getStudentMessages', async (req, res) => {
 app.post('/sendStudentMessage', async (req, res) => {
     try {
         // Check if the student has permission to send message
-        if(req.body.typeInfo.name != 'lesson'){
+        if (req.body.typeInfo.name != 'lesson') {
             const [checkPermission_sql] = await dbConnection.execute(
                 'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
                 [req.session.user_id, req.body.typeInfo.student_id, req.session.user_id, req.body.typeInfo.student_id]
             );
-            if(checkPermission_sql[0].count == 0) throw 'no permission';
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
         } else {
             const [checkPermission_sql] = await dbConnection.execute(
                 'SELECT COUNT(*) as count FROM Student_Lesson WHERE student_id = ? AND lesson_id = ?',
                 [req.session.user_id, req.body.typeInfo.lesson_id]
             )
-            if(checkPermission_sql[0].count == 0) throw 'no permission';
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
         }
 
         // Insert the message
@@ -1930,13 +1928,211 @@ app.post('/sendStudentMessage', async (req, res) => {
                     [req.session.user_id, req.body.typeInfo.student_id, req.body.content]
                 ))[0].insertId;
                 break;
-                
+
             default:
                 break;
         }
 
-        return res.status(200).send(JSON.stringify({insertId: insertId}));
+        return res.status(200).send(JSON.stringify({ insertId: insertId }));
     } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getRelationsOfGuardian', async (req, res) => {
+    try {
+
+        let toReturn = {
+            relations: [],
+            teachers: []
+        }
+
+        const [getStudentRelations_sql] = await dbConnection.execute(
+            'Select relation_id, Final.user_id, name, surname, personal_note_id, nickname, content, school, grade_branch, birth_date FROM (SELECT relation_id, user_id, name, surname, school, grade_branch, birth_date FROM (SELECT * FROM Relation WHERE user1_id = ? OR user2_id = ?) AS Abc INNER JOIN (SELECT User.user_id, User.name, User.surname, User.school, User.grade_branch, User.birth_date FROM User INNER JOIN User_Type ON User_Type.user_type_id = User.user_type_id WHERE User.user_type_id = 2) AS Teachers ON (Abc.user1_id = Teachers.user_id OR Abc.user2_id = Teachers.user_id)) AS Final INNER JOIN Personal_Note ON (Final.user_id = for_user_id) WHERE Personal_Note.user_id = ?',
+            [req.session.user_id, req.session.user_id, req.session.user_id]
+        );
+
+        toReturn.relations = [...getStudentRelations_sql];
+
+        // Get teachers, and their lessons and group the students
+        if (getStudentRelations_sql.length > 0) {
+            const [getTeacherLessons_sql] = await dbConnection.execute(dbConnection.format(
+                'SELECT student_id, lesson_id, lesson_name, teacher_id, User.name, User.surname FROM (SELECT student_id, Lesson.lesson_id, name as lesson_name, teacher_id FROM Student_Lesson INNER JOIN Lesson ON Student_Lesson.lesson_id = Lesson.lesson_id WHERE student_id IN (?)) as Abc INNER JOIN User ON teacher_id = user_id',
+                [getStudentRelations_sql.map(elem => elem.user_id)]
+            ));
+
+            getTeacherLessons_sql.forEach(elem => {
+                let teacherIndex = toReturn.teachers.findIndex(teacher => teacher.teacher_id == elem.teacher_id);
+                if (teacherIndex == -1) {
+                    teacherIndex = toReturn.teachers.push({
+                        name: elem.name,
+                        surname: elem.surname,
+                        teacher_id: elem.teacher_id,
+                        lessons: []
+                    }) - 1;
+                }
+
+                let lessonIndex = toReturn.teachers[teacherIndex].lessons.findIndex(lesson => lesson.lesson_name == elem.lesson_name);
+                if (lessonIndex == -1) {
+                    lessonIndex = toReturn.teachers[teacherIndex].lessons.push({
+                        lesson_name: elem.lesson_name,
+                        lesson_id: elem.lesson_id,
+                        students: []
+                    }) - 1;
+                }
+                toReturn.teachers[teacherIndex].lessons[lessonIndex].students.push(elem.student_id);
+            })
+        }
+
+        return res.status(200).send(JSON.stringify(toReturn));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.get('/getGuardianMessages', async (req, res) => {
+    try {
+
+        let toReturn = {
+            myId: req.session.user_id,
+            personalMessages: [],
+            messagesTeacherToGuardian: [],
+            messagesGuardianToTeacher: [],
+            lessonMessages: [],
+            userInfo: []
+        }
+
+        const [getPersonalMessages_sql] = await dbConnection.execute(
+            'SELECT * FROM Message_Personal WHERE sender_id = ? OR receiver_id = ? ORDER BY date',
+            [req.session.user_id, req.session.user_id]
+        );
+        toReturn.personalMessages = [...getPersonalMessages_sql];
+
+        const [getMessagesTeacherToGuardian_sql] = await dbConnection.execute(
+            'SELECT * FROM message_teacher_guardian WHERE student_id IN (SELECT user1_id FROM Relation WHERE user1_id = ? OR user2_id = ?) OR student_id IN (SELECT user2_id FROM Relation WHERE user1_id = ? OR user2_id = ?) ORDER BY date',
+            [req.session.user_id, req.session.user_id, req.session.user_id, req.session.user_id]
+        )
+        toReturn.messagesTeacherToGuardian = [...getMessagesTeacherToGuardian_sql];
+
+        const [getMessagesGuardianToTeacher_sql] = await dbConnection.execute(
+            'SELECT * FROM message_guardian_teacher WHERE student_id IN (SELECT user1_id FROM Relation WHERE user1_id = ? OR user2_id = ?) OR student_id IN (SELECT user2_id FROM Relation WHERE user1_id = ? OR user2_id = ?) ORDER BY date',
+            [req.session.user_id, req.session.user_id, req.session.user_id, req.session.user_id]
+        )
+        toReturn.messagesGuardianToTeacher = [...getMessagesGuardianToTeacher_sql];
+
+        const [getLessonMessages_sql] = await dbConnection.execute(
+            'SELECT DISTINCT * FROM (SELECT name as lesson_name, Abc.lesson_id FROM (SELECT student_id, lesson_id FROM Relation INNER JOIN Student_Lesson ON student_id IN (user1_id) OR student_id IN (user2_id)WHERE user1_id = ? OR user2_id = ?) as Abc INNER JOIN Lesson ON Abc.lesson_id = Lesson.lesson_id) as Final INNER JOIN Message_Lesson ON Message_Lesson.lesson_id = Final.lesson_id',
+            [req.session.user_id, req.session.user_id]
+        )
+        toReturn.lessonMessages = [...getLessonMessages_sql];
+
+        let uniqueIds = [];
+        uniqueIds.push(req.session.user_id);
+
+        getPersonalMessages_sql.forEach(msg => {
+            if (uniqueIds.findIndex(elem => elem == msg.receiver_id) == -1) uniqueIds.push(msg.receiver_id);
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+        })
+
+        getMessagesTeacherToGuardian_sql.forEach(msg => {
+            if (uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
+            if (uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
+        })
+
+        getMessagesGuardianToTeacher_sql.forEach(msg => {
+            if (uniqueIds.findIndex(elem => elem == msg.guardian_id) == -1) uniqueIds.push(msg.guardian_id);
+            if (uniqueIds.findIndex(elem => elem == msg.teacher_id) == -1) uniqueIds.push(msg.teacher_id);
+            if (uniqueIds.findIndex(elem => elem == msg.student_id) == -1) uniqueIds.push(msg.student_id);
+        })
+
+        getLessonMessages_sql.forEach(msg => {
+            if (uniqueIds.findIndex(elem => elem == msg.sender_id) == -1) uniqueIds.push(msg.sender_id);
+        })
+
+        if (uniqueIds.length > 0) {
+            const [getUserInfo_sql] = await dbConnection.execute(dbConnection.format(
+                "SELECT User.user_id, user_type_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
+                [req.session.user_id, uniqueIds]
+            ));
+
+            toReturn.userInfo = [...getUserInfo_sql];
+        }
+
+        let guardianIds = [];
+        toReturn.userInfo.forEach((elem, index) => {
+            if (elem.user_type_id == 3) {
+                toReturn.userInfo[index].students = [];
+                guardianIds.push(elem.user_id);
+            }
+        })
+
+        if (guardianIds.length > 0) {
+            const [getGuardianStudents_sql] = await dbConnection.execute(dbConnection.format(
+                'SELECT * FROM Relation WHERE user1_id IN (?) OR user2_id IN (?)',
+                [guardianIds, guardianIds]
+            ));
+
+            getGuardianStudents_sql.forEach(relation => {
+                let guardianIndex = toReturn.userInfo.findIndex(elem => (elem.user_type_id == 3 && (elem.user_id == relation.user1_id || elem.user_id == relation.user2_id)));
+                let idToPush = (toReturn.userInfo[guardianIndex].user_id == relation.user1_id ? relation.user2_id : relation.user1_id);
+                toReturn.userInfo[guardianIndex].students.push(idToPush);
+            })
+        }
+        return res.status(200).send(JSON.stringify(toReturn));
+
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
+app.post('/sendGuardianMessage', async (req, res) => {
+    try {
+        // Check if the guardian has permission to send message
+        if (req.body.typeInfo.name != 'lesson') {
+            const [checkPermission_sql] = await dbConnection.execute(
+                'SELECT COUNT(*) as count FROM Relation WHERE user1_id IN (?,?) AND user2_id IN (?,?)',
+                [req.session.user_id, req.body.typeInfo.student_id, req.session.user_id, req.body.typeInfo.student_id]
+            );
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
+        } else {
+            const [checkPermission_sql] = await dbConnection.execute(
+                'SELECT DISTINCT Abc.lesson_id FROM (SELECT student_id, lesson_id FROM Relation INNER JOIN Student_Lesson ON student_id IN (user1_id) OR student_id IN (user2_id)WHERE user1_id = ? OR user2_id = ?) as Abc INNER JOIN Lesson ON Abc.lesson_id = Lesson.lesson_id WHERE Lesson.lesson_id = ?',
+                [req.session.user_id, req.session.user_id, req.body.typeInfo.lesson_id]
+            )
+            if (checkPermission_sql[0].count == 0) throw 'no permission';
+        }
+        
+        // Insert the message
+        let insertId;
+        switch (req.body.typeInfo.name) {
+            case 'lesson':
+                insertId = (await dbConnection.execute(
+                    'INSERT INTO Message_Lesson (sender_id, lesson_id, content, date) VALUES (?,?,?, NOW())',
+                    [req.session.user_id, req.body.typeInfo.lesson_id, req.body.content]
+                ))[0].insertId;
+                break;
+
+            case 'guardian':
+                insertId = (await dbConnection.execute(
+                    'INSERT INTO Message_Guardian_Teacher (guardian_id, teacher_id, student_id, content, date) VALUES (?,?,?,?, NOW())',
+                    [req.session.user_id, req.body.typeInfo.teacher_id, req.body.typeInfo.student_id, req.body.content]
+                ))[0].insertId;
+                break;
+
+            case 'personal':
+                insertId = (await dbConnection.execute(
+                    'INSERT INTO Message_Personal (sender_id, receiver_id, content, date) VALUES (?,?,?, NOW())',
+                    [req.session.user_id, req.body.typeInfo.student_id, req.body.content]
+                ))[0].insertId;
+                break;
+
+            default:
+                break;
+        }
+
+        return res.status(200).send(JSON.stringify({ insertId: insertId }));
+    } catch (error) {
+        console.log(error);
         return res.status(403).send();
     }
 });

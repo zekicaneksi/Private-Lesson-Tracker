@@ -24,6 +24,43 @@ function LessonBox(props) {
         });
     }, []);
 
+    function sendMsgBtnHandle(type) {
+
+        function getFullName(user) {
+            return user.name + ' ' + user.surname + ((user.nickname != '' && user.nickname != null) ? (' (' + user.nickname + ')') : '');
+        }
+
+        let label;
+        let typeInfo = {};
+
+        typeInfo.name = type == 'lesson' ? 'lesson' : 'guardian';
+        
+        if (type == 'teacher') {
+            label = '(Öğretmeni - '+ props.lessonInfo.teacher_name + ' ' + props.lessonInfo.teacher_surname + ') '+ props.user_name;
+            typeInfo.student_id = props.user_id;
+            typeInfo.teacher_id = props.lessonInfo.teacher_id;
+            router.push({
+                pathname: '/guardian/messages',
+                query: {
+                    label: label,
+                    typeInfo_name: typeInfo.name,
+                    typeInfo_student_id: typeInfo.student_id,
+                    typeInfo_teacher_id: typeInfo.teacher_id
+                }
+            }, '/guardian/messages');
+        } else {
+            label = '('+ props.lessonInfo.lesson_id + ') ' + props.lessonInfo.lesson_name;
+            router.push({
+                pathname: '/guardian/messages',
+                query: {
+                    label: label,
+                    typeInfo_name: typeInfo.name,
+                    typeInfo_lesson_id: props.lessonInfo.lesson_id,
+                }
+            }, '/guardian/messages');
+        }
+    }
+
     const sessionElems = sessionList.map((elem, index) => {
         if (elem.date > new Date()) {
             let text = dateToString(elem.date) + ' ' + elem.start_time.substring(0, 5) + ' - ' + elem.end_time.substring(0, 5) + " " + elem.name;
@@ -43,7 +80,8 @@ function LessonBox(props) {
                     {sessionElems}
                 </select>
                 <p>Öğretmen: {teacherName}</p>
-                <button>Öğretmene Mesaj Gönder</button>
+                <button onClick={() => sendMsgBtnHandle('teacher')}>Öğretmene Mesaj Gönder</button>
+                <button onClick={() => sendMsgBtnHandle('lesson')}>Ders Grubuna Mesaj Gönder</button>
             </div>
         </div>
     );
