@@ -210,12 +210,14 @@ CREATE TABLE Note (
 	note_id INT PRIMARY KEY AUTO_INCREMENT,
     teacher_id INT NOT NULL,
     student_id INT NOT NULL,
+    lesson_id INT,
     creation_date datetime NOT NULL,
     header VARCHAR(80) NOT NULL,
     content VARCHAR(255) NOT NULL,
     
     FOREIGN KEY (teacher_id) REFERENCES User (user_id),
-    FOREIGN KEY (student_id) REFERENCES User (user_id)
+    FOREIGN KEY (student_id) REFERENCES User (user_id),
+    FOREIGN KEY (lesson_id) REFERENCES Lesson (lesson_id)
 );
 
 INSERT INTO User_Type (name) VALUES ('teacher'), ('student'), ('guardian')

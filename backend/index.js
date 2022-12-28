@@ -1181,7 +1181,7 @@ app.get('/getTeacherNotes', async (req, res) => {
     try {
 
         const [getTeacherNotes_sql] = await dbConnection.execute(
-            'SELECT * FROM Note WHERE teacher_id = ? ORDER BY creation_date',
+            'SELECT note_id, Note.teacher_id, student_id, Note.lesson_id, creation_date, header, content, name as lesson_name FROM Note LEFT OUTER JOIN Lesson ON Lesson.lesson_id = Note.lesson_id WHERE Note.teacher_id = ? ORDER BY creation_date',
             [req.session.user_id]
         );
 
@@ -1194,8 +1194,8 @@ app.get('/getTeacherNotes', async (req, res) => {
 app.post('/createNote', async (req, res) => {
     try {
         const [createNote_sql] = await dbConnection.execute(
-            'INSERT INTO Note (teacher_id, student_id, creation_date, header, content) VALUES (?,?,CURDATE(),?,?)',
-            [req.session.user_id, req.body.student_id, req.body.header, req.body.content]
+            'INSERT INTO Note (teacher_id, student_id, lesson_id, creation_date, header, content) VALUES (?,?,?,CURDATE(),?,?)',
+            [req.session.user_id, req.body.student_id, req.body.lesson_id,req.body.header, req.body.content]
         )
 
         return res.status(200).send(JSON.stringify({ insertId: createNote_sql.insertId }));

@@ -1,42 +1,46 @@
-.pageContainer{
-    padding:4%;
+.pageContainer {
+    padding: 4%;
     display: flex;
     flex-direction: row;
     gap: 8%;
     justify-content: center;
 }
 
-.pageContainer select{
+.pageContainer select {
     min-width: 10em;
 }
 
-.pageContainer textarea{
+.pageContainer textarea {
     resize: none;
     height: 5em;
 }
 
-.sideContainer{
+.sideContainer {
     display: flex;
     flex-direction: column;
     gap: 0.5em;
 }
 
-.sideContainer p{
+.sideContainer p {
     text-align: center;
 }
 
-.flex{
-    display:flex;
+.flex {
+    display: flex;
 }
 
-.flexColumn{
+.flexColumn {
     flex-direction: column;
 }
 
-.flexOne{
+.flexOne {
     flex: 1;
 }
 
-.flexGap{
-    gap:0.4em;
+.flexGap {
+    gap: 0.4em;
+}
+
+.hidden {
+    visibility: hidden;
 }

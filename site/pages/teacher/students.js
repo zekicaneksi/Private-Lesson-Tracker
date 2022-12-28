@@ -39,7 +39,7 @@ export default function Students() {
     if(studentList[studentIndex]?.lessonList != undefined) {
         givenLessonsElems = studentList[studentIndex].lessonList.map(studentLesson => {
             let optionText = "("+ studentLesson.lesson_id + ") " + studentLesson.name;
-            return <option key={studentLesson.lesson_id} value={studentLesson.lesosn_id}>{optionText}</option>
+            return <option key={studentLesson.lesson_id} value={studentLesson.lesson_id}>{optionText}</option>
         })
     }
 
