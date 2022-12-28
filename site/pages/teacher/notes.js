@@ -92,7 +92,7 @@ export default function Notes() {
             student_id: studentSelectedId,
             header: createNoteHeaderInput,
             content: createNoteContentInput,
-            lesson_id: createNoteSelectedId
+            lesson_id: (createNoteSelectedId == -1 ? null : createNoteSelectedId)
         }, async (response) => {
             if (response.status == 200) {
                 let res = await response.json();
@@ -103,7 +103,7 @@ export default function Notes() {
                         header: createNoteHeaderInput,
                         student_id: studentSelectedId,
                         lesson_id: createNoteSelectedId,
-                        lesson_name: studentRelations.find(student => student.user_id == studentSelectedId).lessonList.find(lesson => lesson.lesson_id == createNoteSelectedId).name,
+                        lesson_name: (createNoteSelectedId == -1 ? '' : studentRelations.find(student => student.user_id == studentSelectedId).lessonList.find(lesson => lesson.lesson_id == createNoteSelectedId).name),
                         note_id: res.insertId,
                         creation_date: new Date()
                     });
