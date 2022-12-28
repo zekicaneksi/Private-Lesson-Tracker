@@ -2137,4 +2137,17 @@ app.post('/sendGuardianMessage', async (req, res) => {
     }
 });
 
+app.post('/getTeacherStudentLesson', async (req, res) => {
+    try {
+        const [getTeacherStudentLesson_sql] = await dbConnection.execute(dbConnection.format(
+            'SELECT Lesson.lesson_id, name, student_id FROM Lesson INNER JOIN Student_Lesson ON Lesson.lesson_id = Student_Lesson.lesson_id WHERE teacher_id = ? AND student_id IN (?)',
+            [req.session.user_id, req.body.userIds]
+        ));
+
+        return res.status(200).send(JSON.stringify(getTeacherStudentLesson_sql));
+    } catch (error) {
+        return res.status(403).send();
+    }
+});
+
 app.listen(process.env.PORT);
