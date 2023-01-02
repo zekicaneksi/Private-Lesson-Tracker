@@ -15,7 +15,7 @@ function AssignmentsSection(props) {
     }, [filterLessonId])
 
     let filterLessonElems = props.lessonList.map(lesson => {
-        return <option key={lesson.lesson_id} value={lesson.lesson_id}>{lesson.lesson_name}</option>
+        return <option key={lesson.lesson_id} value={lesson.lesson_id}>{'('+lesson.lesson_id + ') '+ lesson.lesson_name}</option>
     })
     filterLessonElems?.unshift(
         <option key={"all"} value={"all"}>Hepsi</option>

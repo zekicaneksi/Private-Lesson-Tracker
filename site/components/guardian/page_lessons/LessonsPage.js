@@ -72,7 +72,7 @@ function LessonBox(props) {
 
     return (
         <div className={`fieldContainer ${loading ? 'disabled' : ''} ${styles.flex} ${styles.flexRow} globalFieldContainerPadding ${styles.flexGap} ${styles.flexJustifyCenter}`}>
-            <p>{props.lessonInfo.lesson_name}</p>
+            <p>{'('+ props.lessonInfo.lesson_id + ') ' + props.lessonInfo.lesson_name}</p>
             <div className={`${styles.flex} ${styles.flexColumn}`}>
                 <button className={`${styles.marginLeftAuto}`}
                     onClick={() => { props.setNavInfo({ lesson_name: props.lessonInfo.lesson_name, lesson_id: props.lessonInfo.lesson_id, userId: props.userId, teacher_name: teacherName, user_name: props.user_name }); }}>Seans Geçmişi</button>

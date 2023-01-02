@@ -110,7 +110,7 @@ function Students(props) {
         if (props.studentList != undefined){
             let toSet = [];
             props.studentList.forEach(elem => {
-                let fullName = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
+                let fullName = '('+elem.user_id + ') '+ elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
                 const pattern = new RegExp(formValues.searchInput, 'i');
                 if (formValues.searchInput == '' || (fullName.search(pattern) != -1)) {
                     toSet.push(
@@ -215,10 +215,10 @@ function MessageList(props) {
                             pushMessage(message, conversationIndex, getFullName(messageList.userInfo.find(usr => usr.user_id == messageNameId)), messageIdKeyName + ':' + message[messageIdKeyName]);
                         });
                     }
-
+                    
                     guardianConversation("messagesTeacherToGuardian");
                     guardianConversation("messagesGuardianToTeacher");
-
+                    
                     // Create the lesson conversations
                     messageList.lessonMessages.forEach(message => {
                         let user = messageList.userInfo.find(usr => usr.user_id == message.sender_id);
@@ -226,7 +226,7 @@ function MessageList(props) {
                         let senderName = (user.user_type_id == 3 ? ('(VELİ) (' + user.students.map(id => getFullName(messageList.userInfo.find(usr => usr.user_id == id))).join(' - ') + ') ' + getFullName(user)) : getFullName(user))
                         pushMessage(message, conversationIndex, senderName, "message_lesson_id:" + message.message_lesson_id);
                     });
-
+                    
                     // Sort all the conversations
                     conversationList.forEach(conversation => {
                         conversation.messageList.sort((a, b) => {
@@ -234,7 +234,7 @@ function MessageList(props) {
                             else return 1;
                         });
                     });
-
+                    
                     // Sort conversation list by last message
                     conversationList.sort((a, b) => {
                         let a_last_date;
@@ -245,7 +245,7 @@ function MessageList(props) {
                         else if (a_last_date < b_last_date) return 1;
                         else return 0;
                     });
-
+                    
                     // Check if came with a query
                     let query = false;
                     if (Object.keys(router.query).length != 0) query = true;

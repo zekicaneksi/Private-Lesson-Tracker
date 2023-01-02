@@ -101,6 +101,7 @@
     border-top-width: 0px;
     overflow: auto;
     max-height: 1000%;
+    z-index: 5;
 }
 
 .show{

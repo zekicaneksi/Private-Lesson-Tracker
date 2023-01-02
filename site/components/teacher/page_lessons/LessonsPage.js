@@ -269,8 +269,8 @@ function LessonBox(props) {
             );
         }
     });
-
-    if (addStudentElems.length > 0 && addStudentElems[0] != undefined && formValues.selectedAddStudentId != addStudentElems[0].props.value) changeFormValue("selectedAddStudentId", addStudentElems[0].props.value);
+    
+    if (addStudentElems.length > 0 && addStudentElems[0] != undefined && formValues.selectedAddStudentId == '') changeFormValue("selectedAddStudentId", addStudentElems[0].props.value);
 
     const studentListElems = lessonInfo.studentList.map(elem => {
         let fullName = elem.name + ' ' + elem.surname + ((elem.nickname != '' && elem.nickname != null) ? (' (' + elem.nickname + ')') : '');
@@ -278,10 +278,10 @@ function LessonBox(props) {
             <option key={elem.student_id} value={elem.student_id}>{fullName}</option>
         );
     });
-
+    
     return (
         <div className={`fieldContainer ${loading ? 'disabled' : ''} ${styles.flex} ${styles.flexRow} globalFieldContainerPadding ${styles.flexGap} ${styles.flexJustifyCenter}`}>
-            <p>{props.lessonInfo.name}</p>
+            <p>{'('+ props.lessonInfo.lesson_id + ') '+ props.lessonInfo.name}</p>
             <div className={`fieldContainer ${styles.flex} ${styles.flexColumn} globalFieldContainerPadding`}>
                 <p>Seanslar</p>
                 <button className={`${styles.marginLeftAuto}`}

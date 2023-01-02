@@ -38,7 +38,7 @@ export default function Payments() {
     if (selectedStudentId == 'all') {
         pageInfo?.lessonList.forEach(lesson => {
             lessonElems.push(
-                <option key={lesson.lesson_id} value={lesson.lesson_id}>{lesson.name}</option>
+                <option key={lesson.lesson_id} value={lesson.lesson_id}>{'(' + lesson.lesson_id + ') ' + lesson.name}</option>
             );
         })
     } else {
