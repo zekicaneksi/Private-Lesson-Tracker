@@ -454,6 +454,22 @@ app.post('/deleteRelation', async (req, res) => {
             [req.session.user_id, req.session.user_id, req.body.relation_id]
         );
 
+        // If the deleted relation includes a teacher, remove the student from the lessons that the teacher is giving
+
+        const [get_userInfo_sql] = await dbConnection.execute(
+            'SELECT user_id, user_type_id FROM User WHERE user_id IN (?,?)',
+            [deleted_relation_user_id_sql[0].user1_id, deleted_relation_user_id_sql[0].user2_id]
+        );
+
+        let teacher = get_userInfo_sql.find(user => user.user_type_id == 1);
+        if (teacher!= undefined) {
+            let student = get_userInfo_sql.find(user => user.user_type_id == 2);
+            const [remove_student_from_lessons_sql] = await dbConnection.execute(
+                'DELETE FROM Student_Lesson WHERE student_id = ? AND lesson_id IN (SELECT lesson_id FROM Lesson WHERE teacher_id = ?)',
+                [student.user_id, teacher.user_id]
+            );
+        }
+
         res.status(200).send();
 
         // Create notifications
@@ -483,6 +499,7 @@ app.post('/deleteRelation', async (req, res) => {
         createNotification(notificationList);
 
     } catch (error) {
+        console.log(error);
         return res.status(400).send();
     }
 });
