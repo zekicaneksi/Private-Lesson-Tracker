@@ -107,8 +107,8 @@ CREATE TABLE Relation_Request (
     FOREIGN KEY (to_user_id) REFERENCES User (user_id),
     UNIQUE KEY (from_user_id, to_user_id),
     CHECK (to_user_id != from_user_id),
-    CHECK ((LENGTH(TRIM(nickname)) != 0) AND (LENGTH(LTRIM(nickname)) = LENGTH(nickname)) AND (LENGTH(CONCAT('*', RTRIM(nickname), '*')) = LENGTH(CONCAT('*', nickname, '*')))),
-    CHECK ((LENGTH(TRIM(personal_note)) != 0) AND (LENGTH(LTRIM(personal_note)) = LENGTH(personal_note)) AND (LENGTH(CONCAT('*', RTRIM(personal_note), '*')) = LENGTH(CONCAT('*', personal_note, '*'))))
+    CHECK ((nickname = '') OR ((LENGTH(TRIM(nickname)) != 0) AND (LENGTH(LTRIM(nickname)) = LENGTH(nickname)) AND (LENGTH(CONCAT('*', RTRIM(nickname), '*')) = LENGTH(CONCAT('*', nickname, '*'))))),
+    CHECK ((personal_note = '') OR ((LENGTH(TRIM(personal_note)) != 0) AND (LENGTH(LTRIM(personal_note)) = LENGTH(personal_note)) AND (LENGTH(CONCAT('*', RTRIM(personal_note), '*')) = LENGTH(CONCAT('*', personal_note, '*')))))
 );
 
 DELIMITER //
