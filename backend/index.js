@@ -541,6 +541,7 @@ app.post('/createLesson', async (req, res) => {
         req.body.sessionList.forEach(elem => {
             if (!DateTime.fromISO(elem.date).isValid) validationFail = true;
             if ((new Date(elem.date)) <= (new Date())) validationFail = true;
+            if (elem.sessionName.length != elem.sessionName.trim().length) validationFail = true;
             if (BigInt(convertTimeToMinutes(elem.startTime)) > BigInt(convertTimeToMinutes(elem.endTime))) validationFail = true;
         });
         if (validationFail) return res.status(403).send();
@@ -699,6 +700,7 @@ app.post('/addSession', async (req, res) => {
         let validationFail = false;
         if (!DateTime.fromISO(req.body.date).isValid) validationFail = true;
         if ((new Date(req.body.date)) <= (new Date())) validationFail = true;
+        if (req.body.name.length != req.body.name.trim().length) validationFail = true;
         if (BigInt(convertTimeToMinutes(req.body.startTime)) > BigInt(convertTimeToMinutes(req.body.endTime))) validationFail = true;
         if (validationFail) return res.status(403).send();
 
