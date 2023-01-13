@@ -34,6 +34,17 @@ class LoginForm extends StatefulWidget {
 class LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
@@ -49,6 +60,9 @@ class LoginFormState extends State<LoginForm> {
           child: Column(
             children: <Widget>[
               TextFormField(
+                controller: emailController,
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: "Email",
                   filled: true,
@@ -67,6 +81,8 @@ class LoginFormState extends State<LoginForm> {
                 height: 10,
               ),
               TextFormField(
+                controller: passwordController,
+                textInputAction: TextInputAction.done,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: "Şifre",
@@ -89,6 +105,8 @@ class LoginFormState extends State<LoginForm> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       print('no problem, validatiton sucessful');
+                      print(emailController.text);
+                      print(passwordController.text);
                     }
                   },
                   child: const Text('Giriş Yap'),
