@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -39,9 +41,14 @@ class RegisterForm extends StatefulWidget {
 class RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final List<String> types = ["teacher", "student", "guardian"];
+  final List<List<String>> types = [
+    ["teacher", "Öğretmen"],
+    ["student", "Öğrenci"],
+    ["guardian", "Veli"]
+  ];
   String selectedType = "teacher";
   TextEditingController studentDateCtl = TextEditingController();
+  DateTime? studentDate;
 
   final List<FormField> formFieldList = [
     FormField("Ad", false, (value) {
@@ -93,21 +100,77 @@ class RegisterFormState extends State<RegisterForm> {
     }),
   ];
 
-  Future<void> datePickerForStudent(){
+  Future<void> datePickerForStudent() {
     return Future(() async {
       DateTime? date = DateTime(1900);
-                  FocusScope.of(context).nextFocus();
-                  date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now());
+      FocusScope.of(context).nextFocus();
+      date = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now());
 
-                  if (date != null) {
-                    studentDateCtl.text =
-                        "${date.day.toString()}/${date.month.toString()}/${date.year.toString()}";
-                  }
+      if (date != null) {
+        studentDateCtl.text =
+            "${date.day.toString()}/${date.month.toString()}/${date.year.toString()}";
+        studentDate = date;
+      }
     });
+  }
+
+  void registerBtnHandle(BuildContext context) async {
+    void showSnackBar(String message) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+      ));
+    }
+
+    String getFormFieldTextByName(String name) {
+      return formFieldList
+          .firstWhere((element) => element.name == name)
+          .controller
+          .text;
+    }
+
+    String name = getFormFieldTextByName("Ad");
+    String surname = getFormFieldTextByName("Soyad");
+    String email = getFormFieldTextByName("Email");
+    String password = getFormFieldTextByName("Şifre");
+    String againPassword = getFormFieldTextByName("Tekrar Şifre");
+    String birthDate = "";
+    var holdDate = studentDate?.toIso8601String();
+    if (holdDate != null) birthDate = holdDate;
+    String school = studentFormFieldList[0].controller.text;
+    String gradeBranch = studentFormFieldList[1].controller.text;
+
+    if (password != againPassword) {
+      showSnackBar("Şifreler Eşleşmiyor!");
+    }
+
+    var response = await http.post(Uri.parse("http://10.0.2.2:3001/signup"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'name': name,
+          'surname': surname,
+          'email': email,
+          'password': password,
+          'passwordAgain': againPassword,
+          'birthDate': birthDate,
+          'school': school,
+          'gradeBranch': gradeBranch,
+          'type': selectedType
+        }));
+
+    String? rawCookie = response.headers['set-cookie'];
+    if (rawCookie != null) {
+      
+      int index = rawCookie.indexOf(';');
+      print(rawCookie.substring(0, index));
+    }
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
   }
 
   @override
@@ -138,14 +201,14 @@ class RegisterFormState extends State<RegisterForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                for (String i in types) ...[
+                for (List<String> i in types) ...[
                   ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          selectedType = i;
+                          selectedType = i[0];
                         });
                       },
-                      child: Text(i))
+                      child: Text(i[1]))
                 ],
               ],
             ),
@@ -157,7 +220,9 @@ class RegisterFormState extends State<RegisterForm> {
                 obscureText: i.obscure,
                 controller: i.controller,
                 textInputAction: TextInputAction.next,
-                keyboardType: (i.name != "Email" ? TextInputType.text : TextInputType.emailAddress),
+                keyboardType: (i.name != "Email"
+                    ? TextInputType.text
+                    : TextInputType.emailAddress),
                 decoration: InputDecoration(
                   hintText: i.name,
                   filled: true,
@@ -219,15 +284,7 @@ class RegisterFormState extends State<RegisterForm> {
               child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      for (int i = 0; i < formFieldList.length; i++) {
-                        print(formFieldList[i].controller.text);
-                      }
-                      if (selectedType == "student") {
-                        print(studentDateCtl.text);
-                        for (int i = 0; i < studentFormFieldList.length; i++) {
-                          print(studentFormFieldList[i].controller.text);
-                        }
-                      }
+                      registerBtnHandle(context);
                     }
                   },
                   child: const Text('Kayıt Ol')),

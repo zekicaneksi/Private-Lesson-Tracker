@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.private_lesson_tracker">
+   
+   <uses-permission android:name="android.permission.INTERNET" />
+   
    <application
         android:label="private_lesson_tracker"
         android:name="${applicationName}"

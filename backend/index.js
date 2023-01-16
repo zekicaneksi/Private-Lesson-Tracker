@@ -112,36 +112,36 @@ async function createNotification(userId_Notification_list) {
 
 app.post('/signup', async (req, res) => {
     let userInfo = req.body;
-
-    Object.keys(userInfo).forEach(key => {
-        if (userInfo[key].length == 0) userInfo[key] = null;
-    });
-
-    if ((Buffer.byteLength(userInfo.password, 'utf16')) > 72) {
-        return res.status(400).json({ msg: "Password Too Long" });
-    }
-
-    switch (userInfo.type) {
-        case "teacher":
-            userInfo.type = 1;
-            break;
-        case "student":
-            userInfo.type = 2;
-            break;
-        case "guardian":
-            userInfo.type = 3;
-            break;
-        default:
-            return res.status(400).json({ msg: "wrong user type" });
-    }
-
-    await bcrypt.hash(userInfo.password, 10).then(function (hash) {
-        userInfo.password = hash;
-    }).catch(function (err) {
-        return res.status(400).json({ msg: "hashing error" });
-    });
-
     try {
+        Object.keys(userInfo).forEach(key => {
+            if (userInfo[key].length == 0) userInfo[key] = null;
+        });
+
+        if ((Buffer.byteLength(userInfo.password, 'utf16')) > 72) {
+            return res.status(400).json({ msg: "Password Too Long" });
+        }
+
+        switch (userInfo.type) {
+            case "teacher":
+                userInfo.type = 1;
+                break;
+            case "student":
+                userInfo.type = 2;
+                break;
+            case "guardian":
+                userInfo.type = 3;
+                break;
+            default:
+                return res.status(400).json({ msg: "wrong user type" });
+        }
+
+        await bcrypt.hash(userInfo.password, 10).then(function (hash) {
+            userInfo.password = hash;
+        }).catch(function (err) {
+            return res.status(400).json({ msg: "hashing error" });
+        });
+
+
         const [row_0, fields_0] = await dbConnection.execute(
             'INSERT INTO user (user_type_id, name, surname, email, password, birth_date, school, grade_branch) VALUES (?,?,?,?,?,?,?,?)',
             [userInfo.type, userInfo.name, userInfo.surname, userInfo.email, userInfo.password, userInfo.birthDate, userInfo.school, userInfo.gradeBranch]
@@ -462,7 +462,7 @@ app.post('/deleteRelation', async (req, res) => {
         );
 
         let teacher = get_userInfo_sql.find(user => user.user_type_id == 1);
-        if (teacher!= undefined) {
+        if (teacher != undefined) {
             let student = get_userInfo_sql.find(user => user.user_type_id == 2);
             const [remove_student_from_lessons_sql] = await dbConnection.execute(
                 'DELETE FROM Student_Lesson WHERE student_id = ? AND lesson_id IN (SELECT lesson_id FROM Lesson WHERE teacher_id = ?)',
@@ -2032,18 +2032,18 @@ app.get('/getTeacherMessages', async (req, res) => {
 
             let idList = [];
             toReturn.userInfo.forEach(elem => {
-                if (elem.user_type_id == 3){
+                if (elem.user_type_id == 3) {
                     elem.students.forEach(studentId => {
                         if (idList.findIndex(elem2 => elem2 == studentId) == -1) idList.push(studentId);
                     })
                 }
             })
-            
+
             const [update_userInfo_sql] = await dbConnection.execute(dbConnection.format(
                 "SELECT User.user_id, user_type_id, name, surname, COALESCE(nickname,'') as nickname FROM User LEFT JOIN Personal_Note ON User.user_id = Personal_Note.for_user_id AND Personal_Note.user_id = ? WHERE User.user_id IN (?)",
                 [req.session.user_id, idList]
             ));
-            
+
             toReturn.userInfo.push(...update_userInfo_sql);
         }
         return res.status(200).send(JSON.stringify(toReturn));
@@ -2133,7 +2133,7 @@ app.post('/sendTeacherMessage', async (req, res) => {
                 break;
 
             case 'personal':
-                createNotification([{user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li öğretmeniniz yeni bir mesaj gönderdi"}])
+                createNotification([{ user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li öğretmeniniz yeni bir mesaj gönderdi" }])
                 break;
 
             default:
@@ -2258,9 +2258,9 @@ app.post('/sendStudentMessage', async (req, res) => {
                     'SELECT teacher_id FROM Lesson WHERE lesson_id = ?',
                     [req.body.typeInfo.lesson_id]
                 );
-                notificationList.push({user_id: get_teacher_id_sql[0].teacher_id, content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı" })
+                notificationList.push({ user_id: get_teacher_id_sql[0].teacher_id, content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı" })
                 for (const elem of get_studentIds_sql) {
-                    if (elem.student_id != req.session.user_id){
+                    if (elem.student_id != req.session.user_id) {
                         notificationList.push({
                             user_id: elem.student_id,
                             content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı"
@@ -2278,13 +2278,13 @@ app.post('/sendStudentMessage', async (req, res) => {
                 break;
 
             case 'personal':
-                    createNotification([{user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li öğrenciniz yeni bir mesaj gönderdi"}])
+                createNotification([{ user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li öğrenciniz yeni bir mesaj gönderdi" }])
                 break;
 
             default:
                 break;
         }
-        
+
     } catch (error) {
         return res.status(403).send();
     }
@@ -2495,9 +2495,9 @@ app.post('/sendGuardianMessage', async (req, res) => {
                     'SELECT teacher_id FROM Lesson WHERE lesson_id = ?',
                     [req.body.typeInfo.lesson_id]
                 );
-                notificationList.push({user_id: get_teacher_id_sql[0].teacher_id, content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı" })
+                notificationList.push({ user_id: get_teacher_id_sql[0].teacher_id, content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı" })
                 for (const elem of get_studentIds_sql) {
-                    if (elem.student_id != req.session.user_id){
+                    if (elem.student_id != req.session.user_id) {
                         notificationList.push({
                             user_id: elem.student_id,
                             content: req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı"
@@ -2505,7 +2505,7 @@ app.post('/sendGuardianMessage', async (req, res) => {
                     }
                     let guardianIds = await getGuardianIdsOfStudent(elem.student_id);
                     guardianIds.forEach(guardianId => {
-                        if(guardianId == req.session.user_id) return;
+                        if (guardianId == req.session.user_id) return;
                         notificationList.push({
                             user_id: guardianId,
                             content: elem.student_id + " id'li öğrencinizin aldığı " + req.body.typeInfo.lesson_id + " id'li ders grubuna yeni bir mesaj yazıldı"
@@ -2516,7 +2516,7 @@ app.post('/sendGuardianMessage', async (req, res) => {
                 break;
 
             case 'guardian':
-                let Guardian_notificationList = [{user_id: req.body.typeInfo.teacher_id, content: req.body.typeInfo.student_id + " id'li öğrencinizin bir velisi mesaj gönderdi"}];
+                let Guardian_notificationList = [{ user_id: req.body.typeInfo.teacher_id, content: req.body.typeInfo.student_id + " id'li öğrencinizin bir velisi mesaj gönderdi" }];
                 let guardians = await getGuardianIdsOfStudent(req.body.typeInfo.student_id);
                 guardians.forEach(guardianId => {
                     if (guardianId == req.session.user_id) return;
@@ -2529,7 +2529,7 @@ app.post('/sendGuardianMessage', async (req, res) => {
                 break;
 
             case 'personal':
-                createNotification([{user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li veliniz yeni bir mesaj gönderdi"}])
+                createNotification([{ user_id: req.body.typeInfo.student_id, content: req.session.user_id + " id'li veliniz yeni bir mesaj gönderdi" }])
                 break;
 
             default:
