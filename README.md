@@ -87,12 +87,12 @@ To run the project;
 - `flutter run` in `mobile/private_lesson_tracker` (beforehand make sure you have a device running with `flutter devices`)
 
 ## Deployment
-
-Right now, this section doesn't include the deployment of the mobile app. It will be added once the mobile app is finished.<br></br>
+```
+Right now, this section doesn't include the deployment of the mobile app. It will be added once the mobile app is finished.
 When the time comes, for deployment, these documents should be referred to;
 - https://docs.flutter.dev/deployment/android
 - https://docs.flutter.dev/deployment/ios
-
+```
 To build the project;
 
 - `npm run build` in `site/`
