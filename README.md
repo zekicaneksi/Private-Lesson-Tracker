@@ -13,7 +13,8 @@ App consists of 3 parts;
 - Website
   - NextJs (React)
 
-- Mobile (Flutter)
+- Mobile
+  - Flutter
 
 ## Setting Up The Project
 
@@ -56,6 +57,16 @@ App consists of 3 parts;
   ```
   NEXT_PUBLIC_BACKEND_ADDRESS="<BACKEND_ADRESS>" --- example "http://localhost:2001"
   ```
+  - `.env.development` file with such variables must be created in `mobile/private_lesson_tracker`;
+  <br></br>
+  ```
+  BACKEND_ADDRESS="<BACKEND_ADRESS>" --- example "http://10.0.2.2:3001"
+  ```
+  - `.env.production` file with such variables must be created in `mobile/private_lesson_tracker`;
+  <br></br>
+  ```
+  BACKEND_ADDRESS="<BACKEND_ADRESS>" --- example "http://zekicaneksi.com"
+  ```
 
 - In the `site/package.json` file's `scripts` setting, the ports must be changed to your liking;
 ```
@@ -73,8 +84,14 @@ To run the project;
 
 - `npm run dev` in `backend/`
 - `npm run dev` in `site/`
+- `flutter run` in `mobile/private_lesson_tracker` (beforehand make sure you have a device running with `flutter devices`)
 
 ## Deployment
+
+Right now, this section doesn't include the deployment of the mobile app. It will be added once the mobile app is finished.<br></br>
+When the time comes, for deployment, these documents should be referred to;
+- https://docs.flutter.dev/deployment/android
+- https://docs.flutter.dev/deployment/ios
 
 To build the project;
 
