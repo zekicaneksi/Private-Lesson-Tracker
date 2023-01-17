@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -147,7 +148,7 @@ class RegisterFormState extends State<RegisterForm> {
       showSnackBar("Şifreler Eşleşmiyor!");
     }
 
-    var response = await http.post(Uri.parse("http://10.0.2.2:3001/signup"),
+    var response = await http.post(Uri.parse("${dotenv.env['BACKEND_ADDRESS']}/signup"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
