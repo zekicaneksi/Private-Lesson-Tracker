@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/backend_http_request.dart' as backend_http_request;
+
+class _RegisterResponse {
+  String? msg;
+
+  _RegisterResponse({this.msg});
+
+  _RegisterResponse.fromJson(Map<String, dynamic> json) {
+    msg = json['msg'];
+  }
+}
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -148,11 +157,9 @@ class RegisterFormState extends State<RegisterForm> {
       showSnackBar("Şifreler Eşleşmiyor!");
     }
 
-    var response = await http.post(Uri.parse("${dotenv.env['BACKEND_ADDRESS']}/signup"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
+    var response = await backend_http_request.post(
+        "/signup",
+        jsonEncode(<String, String>{
           'name': name,
           'surname': surname,
           'email': email,
@@ -164,14 +171,16 @@ class RegisterFormState extends State<RegisterForm> {
           'type': selectedType
         }));
 
-    String? rawCookie = response.headers['set-cookie'];
-    if (rawCookie != null) {
-      
-      int index = rawCookie.indexOf(';');
-      print(rawCookie.substring(0, index));
+    if (response.statusCode == 200) {
+      String? rawCookie = response.headers['set-cookie'];
+      if (rawCookie != null) {
+        int index = rawCookie.indexOf(';');
+        await backend_http_request.setCookie(rawCookie.substring(0, index));
+      }
+    } else {
+      _RegisterResponse msg = _RegisterResponse.fromJson(jsonDecode(response.body));
+      showSnackBar(msg.msg == "ER_DUP_ENTRY" ? "Girilen email adresi kullanımdadır!" : "Bilinmeyen Hata!");
     }
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
   }
 
   @override
