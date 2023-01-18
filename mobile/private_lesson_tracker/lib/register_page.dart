@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'utils/backend_http_request.dart' as backend_http_request;
+import 'widgets/loading.dart';
 
 class _RegisterResponse {
   String? msg;
@@ -56,6 +57,8 @@ class RegisterFormState extends State<RegisterForm> {
     ["student", "Öğrenci"],
     ["guardian", "Veli"]
   ];
+
+  bool isLoading = false;
   String selectedType = "teacher";
   TextEditingController studentDateCtl = TextEditingController();
   DateTime? studentDate;
@@ -157,6 +160,9 @@ class RegisterFormState extends State<RegisterForm> {
       showSnackBar("Şifreler Eşleşmiyor!");
     }
 
+    setState(() {
+      isLoading = true;
+    });
     var response = await backend_http_request.post(
         "/signup",
         jsonEncode(<String, String>{
@@ -181,6 +187,9 @@ class RegisterFormState extends State<RegisterForm> {
       _RegisterResponse msg = _RegisterResponse.fromJson(jsonDecode(response.body));
       showSnackBar(msg.msg == "ER_DUP_ENTRY" ? "Girilen email adresi kullanımdadır!" : "Bilinmeyen Hata!");
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -197,117 +206,120 @@ class RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        color: Theme.of(context).backgroundColor,
-      ),
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (List<String> i in types) ...[
-                  ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedType = i[0];
-                        });
-                      },
-                      child: Text(i[1]))
+    return Loading(
+      isLoading: isLoading,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: Theme.of(context).backgroundColor,
+        ),
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  for (List<String> i in types) ...[
+                    ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedType = i[0];
+                          });
+                        },
+                        child: Text(i[1]))
+                  ],
                 ],
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            for (FormField i in formFieldList) ...[
-              TextFormField(
-                obscureText: i.obscure,
-                controller: i.controller,
-                textInputAction: TextInputAction.next,
-                keyboardType: (i.name != "Email"
-                    ? TextInputType.text
-                    : TextInputType.emailAddress),
-                decoration: InputDecoration(
-                  hintText: i.name,
-                  filled: true,
-                  fillColor: Theme.of(context).secondaryHeaderColor,
-                ),
-                validator: i.validator,
-                onEditingComplete: (() {
-                  FocusScope.of(context).nextFocus();
-                  if (i.name == "Tekrar Şifre" && selectedType == "student") {
-                    datePickerForStudent();
-                  }
-                }),
               ),
               const SizedBox(
-                height: 20,
-              )
-            ],
-            if (selectedType == 'student') ...[
-              TextFormField(
-                controller: studentDateCtl,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  hintText: "Doğum Tarihi",
-                  filled: true,
-                  fillColor: Theme.of(context).secondaryHeaderColor,
-                ),
-                showCursor: true,
-                readOnly: true,
-                onTap: datePickerForStudent,
-                validator: ((value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen boş bırakmayın';
-                  }
-                  return null;
-                }),
+                height: 10,
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              for (FormField i in studentFormFieldList) ...[
+              for (FormField i in formFieldList) ...[
                 TextFormField(
                   obscureText: i.obscure,
                   controller: i.controller,
                   textInputAction: TextInputAction.next,
+                  keyboardType: (i.name != "Email"
+                      ? TextInputType.text
+                      : TextInputType.emailAddress),
                   decoration: InputDecoration(
                     hintText: i.name,
                     filled: true,
                     fillColor: Theme.of(context).secondaryHeaderColor,
                   ),
                   validator: i.validator,
+                  onEditingComplete: (() {
+                    FocusScope.of(context).nextFocus();
+                    if (i.name == "Tekrar Şifre" && selectedType == "student") {
+                      datePickerForStudent();
+                    }
+                  }),
                 ),
                 const SizedBox(
                   height: 20,
                 )
-              ]
-            ],
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      registerBtnHandle(context);
+              ],
+              if (selectedType == 'student') ...[
+                TextFormField(
+                  controller: studentDateCtl,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: "Doğum Tarihi",
+                    filled: true,
+                    fillColor: Theme.of(context).secondaryHeaderColor,
+                  ),
+                  showCursor: true,
+                  readOnly: true,
+                  onTap: datePickerForStudent,
+                  validator: ((value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen boş bırakmayın';
                     }
-                  },
-                  child: const Text('Kayıt Ol')),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Geri')),
-            ),
-          ],
+                    return null;
+                  }),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                for (FormField i in studentFormFieldList) ...[
+                  TextFormField(
+                    obscureText: i.obscure,
+                    controller: i.controller,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      hintText: i.name,
+                      filled: true,
+                      fillColor: Theme.of(context).secondaryHeaderColor,
+                    ),
+                    validator: i.validator,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  )
+                ]
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        registerBtnHandle(context);
+                      }
+                    },
+                    child: const Text('Kayıt Ol')),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Geri')),
+              ),
+            ],
+          ),
         ),
       ),
     );
