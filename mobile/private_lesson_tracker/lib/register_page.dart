@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:private_lesson_tracker/index.dart';
 import 'dart:convert';
 import 'utils/backend_http_request.dart' as backend_http_request;
 import 'widgets/loading.dart';
@@ -6,7 +7,7 @@ import 'widgets/loading.dart';
 class _RegisterResponse {
   String? msg;
 
-  _RegisterResponse({this.msg});
+  _RegisterResponse();
 
   _RegisterResponse.fromJson(Map<String, dynamic> json) {
     msg = json['msg'];
@@ -183,9 +184,20 @@ class RegisterFormState extends State<RegisterForm> {
         int index = rawCookie.indexOf(';');
         await backend_http_request.setCookie(rawCookie.substring(0, index));
       }
+      if (!mounted) {
+        showSnackBar('Lütfen tekrar deneyin');
+        return;
+      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Index()),
+      );
     } else {
-      _RegisterResponse msg = _RegisterResponse.fromJson(jsonDecode(response.body));
-      showSnackBar(msg.msg == "ER_DUP_ENTRY" ? "Girilen email adresi kullanımdadır!" : "Bilinmeyen Hata!");
+      _RegisterResponse msg =
+          _RegisterResponse.fromJson(jsonDecode(response.body));
+      showSnackBar(msg.msg == "ER_DUP_ENTRY"
+          ? "Girilen email adresi kullanımdadır!"
+          : "Bilinmeyen Hata!");
     }
     setState(() {
       isLoading = false;

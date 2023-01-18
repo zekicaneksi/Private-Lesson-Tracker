@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:private_lesson_tracker/index.dart';
+import 'package:private_lesson_tracker/widgets/loading.dart';
 import 'login_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/backend_http_request.dart' as backend_http_request;
 
 Future<void> main() async {
-
   if (kReleaseMode) {
     await dotenv.load(fileName: ".env.production");
   } else {
@@ -20,13 +24,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Lesson Tracker',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         backgroundColor: const Color(0xFFACBDBA),
         secondaryHeaderColor: const Color(0xFFEACDC2),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Ders Takip'),
     );
   }
 }
@@ -41,6 +45,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  void checkLogin(context) async {
+    var response = await backend_http_request.get('/getUserInfo');
+    final decoded = jsonDecode(response.body);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => (decoded['msg'] == 'NOT_LOGGED_IN'
+              ? const LoginPage()
+              : const Index())),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    checkLogin(context);
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,19 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              child: const Text('go to the register/login page'),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
-            ),
-          ],
+        child: Loading(
+          isLoading: true,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
         ),
       ),
     );

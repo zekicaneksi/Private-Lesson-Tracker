@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:private_lesson_tracker/index.dart';
 import 'register_page.dart';
 import 'utils/backend_http_request.dart' as backend_http_request;
 import 'widgets/loading.dart';
@@ -8,7 +9,7 @@ import 'widgets/loading.dart';
 class _LoginResponse {
   String? msg;
 
-  _LoginResponse({this.msg});
+  _LoginResponse();
 
   _LoginResponse.fromJson(Map<String, dynamic> json) {
     msg = json['msg'];
@@ -75,6 +76,15 @@ class LoginFormState extends State<LoginForm> {
         int index = rawCookie.indexOf(';');
         await backend_http_request.setCookie(rawCookie.substring(0, index));
       }
+
+      if (!mounted) {
+        showSnackBar('Lütfen tekrar deneyin');
+        return;
+      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Index()),
+      );
     } else {
       _LoginResponse msg = _LoginResponse.fromJson(jsonDecode(response.body));
       showSnackBar(msg.msg == "INVALID_CREDENTIALS"

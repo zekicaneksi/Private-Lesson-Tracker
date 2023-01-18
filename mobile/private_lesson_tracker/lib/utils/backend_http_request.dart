@@ -21,3 +21,12 @@ Future<http.Response> post(String route, String jsonStringBody) async {
       },
       body: jsonStringBody);
 }
+
+Future<http.Response> get(String route) async {
+  String cookie = await getCookie() ?? "";
+  return http.get(Uri.parse("${dotenv.env['BACKEND_ADDRESS']}$route"),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'cookie': cookie
+      });
+}
