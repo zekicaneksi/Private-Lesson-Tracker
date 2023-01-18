@@ -45,10 +45,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void checkLogin(context) async {
+  void checkLogin(BuildContext context) async {
     var response = await backend_http_request.get('/getUserInfo');
     final decoded = jsonDecode(response.body);
 
+    if(!mounted) {
+      didChangeDependencies();
+      return;
+    }
+    
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
