@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:private_lesson_tracker/index.dart';
@@ -8,12 +9,23 @@ import 'login_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'utils/backend_http_request.dart' as backend_http_request;
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 Future<void> main() async {
   if (kReleaseMode) {
     await dotenv.load(fileName: ".env.production");
   } else {
     await dotenv.load(fileName: ".env.development");
   }
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseMessaging.instance.onTokenRefresh
+      .listen(backend_http_request.saveTokenToDatabase);
 
   runApp(const MyApp());
 }
@@ -49,11 +61,11 @@ class _MyHomePageState extends State<MyHomePage> {
     var response = await backend_http_request.get('/getUserInfo');
     final decoded = jsonDecode(response.body);
 
-    if(!mounted) {
+    if (!mounted) {
       didChangeDependencies();
       return;
     }
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

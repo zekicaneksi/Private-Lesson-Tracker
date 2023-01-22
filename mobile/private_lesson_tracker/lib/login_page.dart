@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:private_lesson_tracker/index.dart';
 import 'register_page.dart';
@@ -67,7 +68,8 @@ class LoginFormState extends State<LoginForm> {
         "/login",
         jsonEncode(<String, String>{
           'email': emailController.text,
-          'password': passwordController.text
+          'password': passwordController.text,
+          'platform_type' : 'mobile'
         }));
 
     if (response.statusCode == 200) {
@@ -75,6 +77,7 @@ class LoginFormState extends State<LoginForm> {
       if (rawCookie != null) {
         int index = rawCookie.indexOf(';');
         await backend_http_request.setCookie(rawCookie.substring(0, index));
+        await backend_http_request.saveTokenToDatabase((await FirebaseMessaging.instance.getToken())!);
       }
 
       if (!mounted) {

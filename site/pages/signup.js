@@ -42,7 +42,7 @@ export default function Signup() {
             return;
         }
 
-        let toSend = { ...formValues, type: type };
+        let toSend = { ...formValues, type: type , platform_type: 'web'};
         setDisableForm(true);
         backendFetchPOST('/signup', toSend, async (response) => {
             if (response.status != 200) {

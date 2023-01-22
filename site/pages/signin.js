@@ -20,7 +20,7 @@ export default function Signin() {
   }
 
   function signinBtnHandle() {
-    let toSend = { ...formValues };
+    let toSend = { ...formValues , platform_type: 'web'};
     setDisableForm(true);
 
     backendFetchPOST('/login', toSend, async (response) => {

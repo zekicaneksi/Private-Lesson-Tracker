@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_collection_literals
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ import 'package:private_lesson_tracker/pages/guardian/payments.dart';
 import 'package:private_lesson_tracker/pages/guardian/students.dart';
 import 'package:private_lesson_tracker/pages/guardian/messages.dart';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class Index extends StatefulWidget {
   const Index({super.key});
 
@@ -63,7 +66,6 @@ class _Index extends State<Index> {
     NavElemPair("Mesajlar", const StudentMessages())
   ];
 
-
   List<NavElemPair> guardianItems = [
     NavElemPair("Ana Sayfa", const GuardianHome()),
     NavElemPair("Takvim", const GuardianSchedule()),
@@ -77,6 +79,7 @@ class _Index extends State<Index> {
   List<NavElemPair>? selectedType;
 
   void getUserInfo(BuildContext context) async {
+    print('get user info worked');
     var response = await backend_http_request.get('/getUserInfo');
     final decoded = jsonDecode(response.body);
 
@@ -108,6 +111,8 @@ class _Index extends State<Index> {
   }
 
   void logout(BuildContext context) async {
+    await backend_http_request.get('/signout');
+
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'cookie');
 
@@ -120,10 +125,25 @@ class _Index extends State<Index> {
     );
   }
 
+  StreamSubscription<RemoteMessage>? sub;
   @override
   void didChangeDependencies() {
     getUserInfo(context);
+    sub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      getUserInfo(context);
+    });
     super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    sub?.cancel();
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -139,7 +159,8 @@ class _Index extends State<Index> {
               decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text("${userInfo?.name} ${userInfo?.surname}"),
+              child: Text(
+                  "${userInfo?.name} ${userInfo?.surname} notificatino count: ${userInfo?.notifications?.length}"),
             ),
             if (selectedType == null) ...[
               const Loading(isLoading: true, child: Center())
@@ -157,12 +178,12 @@ class _Index extends State<Index> {
                 )
             ],
             ListTile(
-                  title: const Text("Çıkış Yap"),
-                  onTap: () {
-                    logout(context);
-                    Navigator.pop(context);
-                  },
-                )
+              title: const Text("Çıkış Yap"),
+              onTap: () {
+                logout(context);
+                Navigator.pop(context);
+              },
+            )
           ],
         ),
       ),

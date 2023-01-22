@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:private_lesson_tracker/index.dart';
 import 'dart:convert';
@@ -175,7 +176,8 @@ class RegisterFormState extends State<RegisterForm> {
           'birthDate': birthDate,
           'school': school,
           'gradeBranch': gradeBranch,
-          'type': selectedType
+          'type': selectedType,
+          'platform_type' : 'mobile'
         }));
 
     if (response.statusCode == 200) {
@@ -183,6 +185,7 @@ class RegisterFormState extends State<RegisterForm> {
       if (rawCookie != null) {
         int index = rawCookie.indexOf(';');
         await backend_http_request.setCookie(rawCookie.substring(0, index));
+        await backend_http_request.saveTokenToDatabase((await FirebaseMessaging.instance.getToken())!);
       }
       if (!mounted) {
         showSnackBar('Lütfen tekrar deneyin');

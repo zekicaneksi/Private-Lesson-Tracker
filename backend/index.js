@@ -3,13 +3,22 @@ import cors from 'cors';
 import path from 'path';
 import mysql from 'mysql2/promise'
 import bcrypt from 'bcrypt';
-import session from 'express-session';
+import session, { Session } from 'express-session';
 import MySQLStore from 'express-mysql-session';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
 import { DateTime } from 'luxon';
 import { convertTimeToMinutes } from './utils.js';
 import { userInfo } from 'os';
+import { promisify } from 'node:util';
+
+import firebaseAdmin from 'firebase-admin';
+import { readFile } from 'fs/promises';
+const serviceAccount = JSON.parse(
+    await readFile(
+        new URL('./serviceAccountKey.json', import.meta.url)
+    )
+);
 
 // Setup dotenv (enviorement variables)
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +54,12 @@ var sessionConfig = {
 
 app.use(session(sessionConfig));
 
+// Firebase setup
+
+firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.cert(serviceAccount)
+});
+
 // Middlewares
 
 app.use(cors({
@@ -57,9 +72,19 @@ app.use(express.json());
 
 // Functions
 
-function setReqCookie(req, user_id, user_type) {
+async function setReqCookie(req, user_id, user_type, platform_type) {
+
+    let sess = await promisify(sessionStore.all.bind(sessionStore))();
+
+    for (const key in sess) {
+        if (sess.hasOwnProperty(key)) {
+            if (sess[key].user_id == user_id && sess[key].platform_type == platform_type) sessionStore.destroy(key);
+        }
+    }
+
     req.session.user_id = user_id;
     req.session.user_type = user_type;
+    req.session.platform_type = platform_type;
 }
 
 // Database Functions
@@ -101,6 +126,24 @@ async function createNotification(userId_Notification_list) {
             'INSERT INTO Notification (user_id, content) VALUES ?',
             [userId_Notification_list.map(elem => { return [elem.user_id, elem.content] })]
         ));
+        
+        let allSessions = await promisify(sessionStore.all.bind(sessionStore))();
+
+        for (const key in allSessions) {
+            if (allSessions.hasOwnProperty(key)) {
+                if (allSessions[key].mobileToken == undefined) continue;
+                let notificationJson = userId_Notification_list.find(elem => elem.user_id == allSessions[key].user_id);
+                if ( notificationJson == undefined) continue; 
+                await firebaseAdmin.messaging().sendToDevice(
+                    allSessions[key].mobileToken,
+                    {
+                        notification: {
+                            body: notificationJson.content
+                        }
+                    }
+                );
+            }
+        }
     } catch (error) {
         console.log(error);
         return false;
@@ -150,7 +193,7 @@ app.post('/signup', async (req, res) => {
         let row = await getUserByEmail(userInfo.email);
 
         // Setting cookie
-        setReqCookie(req, row[0].user_id, row[0].name);
+        await setReqCookie(req, row[0].user_id, row[0].name, req.body.platform_type);
         res.status(200).send(JSON.stringify({ msg: req.session.user_type }));
 
     } catch (error) {
@@ -173,7 +216,7 @@ app.post('/login', async (req, res) => {
         }
 
         // Setting cookie
-        setReqCookie(req, row[0].user_id, row[0].name);
+        await setReqCookie(req, row[0].user_id, row[0].name, req.body.platform_type);
         res.status(200).send(JSON.stringify({ msg: req.session.user_type }));
 
     } catch (error) {
@@ -182,6 +225,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/getUserInfo', async (req, res) => {
+
     try {
 
         let userInfo = {};
@@ -2553,6 +2597,11 @@ app.post('/getTeacherStudentLesson', async (req, res) => {
     } catch (error) {
         return res.status(403).send();
     }
+});
+
+app.post('/saveMobileToken', async (req, res) => {
+    req.session.mobileToken = req.body.token;
+    return res.status(200).send();
 });
 
 app.listen(process.env.PORT);
