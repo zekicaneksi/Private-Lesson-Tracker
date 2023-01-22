@@ -20,6 +20,8 @@ App consists of 3 parts;
 
 - `npm install` in both `site/` and `backend/`
 
+- `flutter pub get` in `mobile/private_lesson_tracker/`
+
 - Run "database_init.sql" file in your database.
 
 - Create enviorement variable files;
