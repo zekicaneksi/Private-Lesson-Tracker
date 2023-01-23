@@ -124,7 +124,7 @@ To run the project;
 
 ### SERVICE_NOT_AVALIABLE
 This error is caused because of mainly 4 reasons;
+- Firebase configuration file is not correct. Run `flutterfire configure` again to verify.
 - Your emulator or device doesn't have an internet connection.
 - Your emulator's or device's time is not correct.
 - Google Play Services is disabled or not updated in your emulator or device.
-- Firebase configuration file is not correct. Run `flutterfire configure` again to verify.
