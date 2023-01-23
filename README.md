@@ -37,6 +37,7 @@ If encountered an error, please check the Errors section for a solution.
 - Run `flutterfire configure` in `mobile/private_lesson_tracker/` and create or select a Firebase project that supports Android and iOS apps.
   - Enable `Cloud Messaging API (Legacy)` for your Firebase project to allow Node.js backend to use `admin-sdk` package which sends notifications to mobile devices through FCM <br></br>(Firebase Console -> Your project -> Project Settings -> Cloud Messaging)
   - Generate a private key for a service account (Firebase Console -> Your project -> Project Settings -> Service Accounts), rename the key as `serviceAccountKey.json` and put in `backend/` directory
+  - Run `flutterfire configure` again and select your project with iOS, Android supports to update the firebase options file.
 
 - Create enviorement variable files;
   - `.env.development` file with such variables must be created in `backend/`;
@@ -123,7 +124,8 @@ To run the project;
 
 ### SERVICE_NOT_AVALIABLE
 This error is caused because of mainly 4 reasons;
-- Your emulator or device doesn't have an internet connection.
+- Your emulator or device doesn't have a stable internet connection. (You can check by trying to signin to Google Play Store / App Store)
+- Firebase configuration file is not correct. Run `flutterfire configure` again to verify.
 - Your emulator's or device's time is not correct.
 - Google Play Services is disabled or not updated in your emulator or device.
-- Firebase configuration file is not correct. Run `flutterfire configure` again to verify.
+- Reboot (Cold Boot) your emulator / device while reconsidering above options. Magic happens.
