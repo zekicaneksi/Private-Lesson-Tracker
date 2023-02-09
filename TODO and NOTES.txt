@@ -1,0 +1,20 @@
+------------------------- TODO
+
+- start making mobile's pages;
+-- make notifications and layout (drawer) beautiful
+-- make the contents of the pages
+
+- make loading screens in web. Right it only writes "loading...".
+- make web's pages responsive
+
+- project is mixed in with Turkish-English. Fix them and make the app multi language.
+
+--------------------------
+
+---- Notes
+
+- test the mobile app in IOS
+
+- i don't know if it will cause problems but in the backend, cors allow origin is allowed for all origins. check that out.
+
+- in production, https can cause problems. check express-session package's readme regarding this, it has proxy: trust configurations or something like that.
