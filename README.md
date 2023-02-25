@@ -1,4 +1,7 @@
 # Private-Lesson-Tracker
+
+## The app's website is finished (except repsonsiveness and styling), and the mobile app's live background notification and backend communication setup are finished. But i won't be continuing the project any longer. But I'll still keep it here for them kidzz
+
 An app that ables teacher, students and their guardians to track the private lessons they are taking/giving.
 
 The "Design" folder in the repo contains the database diagram and wireframe design of the site.
